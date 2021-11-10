@@ -95,7 +95,7 @@ defmodule Explorer.Chain.Import.Runner.Transactions do
         timestamps: timestamps
       )
 
-    Logger.info(["### Transactions insert finished ###"])
+    Logger.info(["### Transactions insert FINISHED ###"])
     {:ok, transactions}
   end
 

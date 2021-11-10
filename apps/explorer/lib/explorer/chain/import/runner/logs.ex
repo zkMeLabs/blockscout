@@ -75,7 +75,7 @@ defmodule Explorer.Chain.Import.Runner.Logs do
         timestamps: timestamps
       )
 
-    Logger.info(["### Logs insert finished ###"])
+    Logger.info(["### Logs insert FINISHED ###"])
     {:ok, logs}
   end
 

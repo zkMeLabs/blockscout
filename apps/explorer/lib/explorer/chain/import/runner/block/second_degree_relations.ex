@@ -78,7 +78,7 @@ defmodule Explorer.Chain.Import.Runner.Block.SecondDegreeRelations do
         timestamps: %{}
       )
 
-    Logger.info(["### Second degree relations insert finished ###"])
+    Logger.info(["### Second degree relations insert FINISHED ###"])
 
     {:ok, second_degree_relations}
   end

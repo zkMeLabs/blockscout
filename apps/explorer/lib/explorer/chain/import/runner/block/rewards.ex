@@ -69,7 +69,7 @@ defmodule Explorer.Chain.Import.Runner.Block.Rewards do
         timestamps: timestamps
       )
 
-    Logger.info(["### Block rewards insert finished ###"])
+    Logger.info(["### Block rewards insert FINISHED ###"])
 
     {:ok, block_rewards}
   end

@@ -193,7 +193,7 @@ defmodule Explorer.Chain.Import.Runner.Tokens do
         timestamps: timestamps
       )
 
-    Logger.info(["### Tokens insert finished ###"])
+    Logger.info(["### Tokens insert FINISHED ###"])
     {:ok, tokens}
   end
 

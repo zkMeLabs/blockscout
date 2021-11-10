@@ -75,7 +75,7 @@ defmodule Explorer.Chain.Import.Runner.Transaction.Forks do
         timestamps: timestamps
       )
 
-    Logger.info(["### Transaction forks insert finished ###"])
+    Logger.info(["### Transaction forks insert FINISHED ###"])
 
     {:ok, forks}
   end

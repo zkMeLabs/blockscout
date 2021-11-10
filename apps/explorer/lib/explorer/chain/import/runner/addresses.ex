@@ -116,7 +116,7 @@ defmodule Explorer.Chain.Import.Runner.Addresses do
         timestamps: timestamps
       )
 
-    Logger.info(["### Addresses insert finished ###"])
+    Logger.info(["### Addresses insert FINISHED ###"])
     {:ok, addresses}
   end
 

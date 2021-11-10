@@ -85,7 +85,7 @@ defmodule Explorer.Chain.Import.Runner.Address.CurrentTokenBalances do
       end
     end)
 
-    # Logger.info("### Blocks token_holder_count_deltas finished ###")
+    # Logger.info("### Blocks token_holder_count_deltas FINISHED ###")
   end
 
   @impl Import.Runner
@@ -215,12 +215,12 @@ defmodule Explorer.Chain.Import.Runner.Address.CurrentTokenBalances do
           | {:error, [Changeset.t()]}
   defp insert(repo, changes_list, %{timeout: timeout, timestamps: timestamps} = options)
        when is_atom(repo) and is_list(changes_list) do
-    Logger.info(" ### Address_current_token_balances insert started ")
+    Logger.info("### Address_current_token_balances insert started ###")
 
     inserted_changes_list =
       insert_changes_list_with_and_without_token_id(changes_list, repo, timestamps, timeout, options)
 
-    Logger.info(" ### Address_current_token_balances insert finished ")
+    Logger.info("### Address_current_token_balances insert FINISHED ###")
 
     {:ok, inserted_changes_list}
   end
