@@ -3,6 +3,8 @@ defmodule Explorer.Chain.Import do
   Bulk importing of data into `Explorer.Repo`
   """
 
+  require Logger
+
   alias Ecto.Changeset
   alias Explorer.Chain.Events.Publisher
   alias Explorer.Chain.Import
