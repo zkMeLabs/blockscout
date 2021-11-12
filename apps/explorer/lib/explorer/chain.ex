@@ -69,7 +69,6 @@ defmodule Explorer.Chain do
     Accounts,
     BlockCount,
     BlockNumber,
-    Blocks,
     GasUsage,
     TokenExchangeRate,
     TransactionCount,
@@ -2147,27 +2146,13 @@ defmodule Explorer.Chain do
 
     cond do
       block_type == "Block" && !paging_options.key ->
-        block_from_cache(block_type, paging_options, necessity_by_association)
+        fetch_blocks(block_type, paging_options, necessity_by_association)
 
       block_type == "Uncle" && !paging_options.key ->
         uncles_from_cache(block_type, paging_options, necessity_by_association)
 
       true ->
         fetch_blocks(block_type, paging_options, necessity_by_association)
-    end
-  end
-
-  defp block_from_cache(block_type, paging_options, necessity_by_association) do
-    case Blocks.take_enough(paging_options.page_size) do
-      nil ->
-        elements = fetch_blocks(block_type, paging_options, necessity_by_association)
-
-        Blocks.update(elements)
-
-        elements
-
-      blocks ->
-        blocks
     end
   end
 

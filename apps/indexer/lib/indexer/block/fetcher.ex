@@ -13,7 +13,6 @@ defmodule Indexer.Block.Fetcher do
   alias Explorer.Chain
   alias Explorer.Chain.{Address, Block, Hash, Import, Transaction}
   alias Explorer.Chain.Block.Reward
-  alias Explorer.Chain.Cache.Blocks, as: BlocksCache
   alias Explorer.Chain.Cache.{Accounts, BlockNumber, Uncles}
   alias Indexer.Block.Fetcher.Receipts
 
@@ -277,7 +276,6 @@ defmodule Indexer.Block.Fetcher do
 
     BlockNumber.update_all(max_block.number)
     BlockNumber.update_all(min_block.number)
-    BlocksCache.update(blocks)
   end
 
   defp update_block_cache(_), do: :ok
