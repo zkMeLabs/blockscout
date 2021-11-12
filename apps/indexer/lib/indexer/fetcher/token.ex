@@ -75,5 +75,6 @@ defmodule Indexer.Fetcher.Token do
       |> Map.put(:cataloged, true)
 
     {:ok, _} = Chain.update_token(%{token | updated_at: DateTime.utc_now()}, token_params)
+    :ok
   end
 end

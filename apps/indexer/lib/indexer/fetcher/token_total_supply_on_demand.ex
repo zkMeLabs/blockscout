@@ -43,5 +43,6 @@ defmodule Indexer.Fetcher.TokenTotalSupplyOnDemand do
       |> Repo.preload([:contract_address])
 
     {:ok, _} = Chain.update_token(%{token | updated_at: DateTime.utc_now()}, token_params)
+    :ok
   end
 end
