@@ -381,22 +381,22 @@ defmodule Explorer.Chain.Import do
         1
 
       MapSet.member?(multi_names_map_set, :acquire_blocks) ->
-        2
-
-      MapSet.member?(multi_names_map_set, :transactions) ->
-        3
-
-      secondary_updates?(multi_names_map_set) ->
-        4
-
-      tertiary_updates?(multi_names_map_set) ->
-        5
-
-      multi_names == %MapSet{} ->
         7
 
-      true ->
+      MapSet.member?(multi_names_map_set, :transactions) ->
+        2
+
+      secondary_updates?(multi_names_map_set) ->
+        3
+
+      tertiary_updates?(multi_names_map_set) ->
+        4
+
+      multi_names == %MapSet{} ->
         6
+
+      true ->
+        5
     end
   end
 
