@@ -63,7 +63,7 @@ defmodule Explorer.Chain.Import.Runner.Transaction.Forks do
     # Enforce Fork ShareLocks order (see docs: sharelocks.md)
     ordered_changes_list = Enum.sort_by(changes_list, &{&1.uncle_hash, &1.index})
 
-    {:ok, forks} =
+    res =
       Import.insert_changes_list(
         repo,
         ordered_changes_list,
@@ -77,7 +77,7 @@ defmodule Explorer.Chain.Import.Runner.Transaction.Forks do
 
     Logger.info(["### Transaction forks insert FINISHED ###"])
 
-    {:ok, forks}
+    res
   end
 
   defp default_on_conflict do

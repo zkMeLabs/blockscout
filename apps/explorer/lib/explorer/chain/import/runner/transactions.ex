@@ -83,7 +83,7 @@ defmodule Explorer.Chain.Import.Runner.Transactions do
     # Enforce Transaction ShareLocks order (see docs: sharelocks.md)
     ordered_changes_list = Enum.sort_by(changes_list, & &1.hash)
 
-    {:ok, transactions} =
+    res =
       Import.insert_changes_list(
         repo,
         ordered_changes_list,
@@ -96,7 +96,7 @@ defmodule Explorer.Chain.Import.Runner.Transactions do
       )
 
     Logger.info(["### Transactions insert FINISHED ###"])
-    {:ok, transactions}
+    res
   end
 
   defp default_on_conflict do

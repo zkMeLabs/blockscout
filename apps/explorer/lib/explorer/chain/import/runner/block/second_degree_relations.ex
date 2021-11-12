@@ -67,7 +67,7 @@ defmodule Explorer.Chain.Import.Runner.Block.SecondDegreeRelations do
     # Enforce SeconDegreeRelation ShareLocks order (see docs: sharelocks.md)
     ordered_changes_list = Enum.sort_by(changes_list, &{&1.nephew_hash, &1.uncle_hash})
 
-    {:ok, second_degree_relations} =
+    res =
       Import.insert_changes_list(repo, ordered_changes_list,
         conflict_target: [:nephew_hash, :uncle_hash],
         on_conflict: on_conflict,
@@ -80,7 +80,7 @@ defmodule Explorer.Chain.Import.Runner.Block.SecondDegreeRelations do
 
     Logger.info(["### Second degree relations insert FINISHED ###"])
 
-    {:ok, second_degree_relations}
+    res
   end
 
   defp default_on_conflict do

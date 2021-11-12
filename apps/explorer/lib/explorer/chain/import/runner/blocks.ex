@@ -239,7 +239,7 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
       |> Enum.sort_by(& &1.hash)
       |> Enum.dedup_by(& &1.hash)
 
-    {:ok, blocks} =
+    res =
       Import.insert_changes_list(
         repo,
         ordered_changes_list,
@@ -253,7 +253,7 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
 
     Logger.info(["### Blocks insert finished ###"])
 
-    {:ok, blocks}
+    res
   end
 
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity

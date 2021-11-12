@@ -57,7 +57,7 @@ defmodule Explorer.Chain.Import.Runner.Block.Rewards do
     # Enforce Reward ShareLocks order (see docs: sharelocks.md)
     ordered_changes_list = Enum.sort_by(changes_list, &{&1.block_hash, &1.address_hash, &1.address_type})
 
-    {:ok, block_rewards} =
+    res =
       Import.insert_changes_list(
         repo,
         ordered_changes_list,
@@ -71,7 +71,7 @@ defmodule Explorer.Chain.Import.Runner.Block.Rewards do
 
     Logger.info(["### Block rewards insert FINISHED ###"])
 
-    {:ok, block_rewards}
+    res
   end
 
   defp default_on_conflict do

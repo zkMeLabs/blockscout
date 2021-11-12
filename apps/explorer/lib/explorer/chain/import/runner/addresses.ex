@@ -111,7 +111,7 @@ defmodule Explorer.Chain.Import.Runner.Addresses do
 
     Logger.info("address changes list length " <> inspect(Enum.count(changes_list)))
 
-    {:ok, addresses} =
+    res =
       Import.insert_changes_list(
         repo,
         ordered_changes_list,
@@ -124,7 +124,7 @@ defmodule Explorer.Chain.Import.Runner.Addresses do
       )
 
     Logger.info(["### Addresses insert FINISHED ###"])
-    {:ok, addresses}
+    res
   end
 
   defp default_on_conflict do
