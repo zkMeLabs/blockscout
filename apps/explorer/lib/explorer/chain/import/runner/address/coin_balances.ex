@@ -79,9 +79,11 @@ defmodule Explorer.Chain.Import.Runner.Address.CoinBalances do
     ordered_changes_list = Enum.sort_by(changes_list, &{&1.address_hash, &1.block_number})
 
     {:ok, _} =
-      Import.insert_changes_list(
+      Import.insert_changes_list_in_batches(
+        __MODULE__,
         repo,
         ordered_changes_list,
+        100,
         conflict_target: [:address_hash, :block_number],
         on_conflict: on_conflict,
         for: CoinBalance,
@@ -89,7 +91,7 @@ defmodule Explorer.Chain.Import.Runner.Address.CoinBalances do
         timestamps: timestamps
       )
 
-    Logger.info("### Address_coin_balances insert FINISHED ###")
+    Logger.info("### Address_coin_balances insert FINISHED changes_list length #{Enum.count(changes_list)} ###")
 
     {:ok, Enum.map(ordered_changes_list, &Map.take(&1, ~w(address_hash block_number)a))}
   end

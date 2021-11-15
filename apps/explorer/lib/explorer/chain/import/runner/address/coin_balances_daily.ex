@@ -96,9 +96,11 @@ defmodule Explorer.Chain.Import.Runner.Address.CoinBalancesDaily do
     ordered_changes_list = Enum.sort_by(combined_changes_list, &{&1.address_hash, &1.day})
 
     {:ok, _} =
-      Import.insert_changes_list(
+      Import.insert_changes_list_in_batches(
+        __MODULE__,
         repo,
         ordered_changes_list,
+        100,
         conflict_target: [:address_hash, :day],
         on_conflict: on_conflict,
         for: CoinBalanceDaily,

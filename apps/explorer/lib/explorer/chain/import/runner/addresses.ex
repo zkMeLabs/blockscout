@@ -40,9 +40,8 @@ defmodule Explorer.Chain.Import.Runner.Addresses do
 
   @impl Import.Runner
   def run(multi, changes_list, %{timestamps: timestamps} = options) do
-    Logger.info("### Addresses run started. Changes list length #{inspect(Enum.count(changes_list))} ###")
-    Logger.info("### multi #{inspect(multi)} ###")
-    Logger.info("### changes_list length #{inspect(Enum.count(changes_list))} ###")
+    Logger.info("### Addresses run started changes_list length #{inspect(Enum.count(changes_list))} ###")
+    # Logger.info("### multi #{inspect(multi)} ###")
 
     insert_options =
       options
@@ -62,11 +61,11 @@ defmodule Explorer.Chain.Import.Runner.Addresses do
         end)
       end)
 
-    Logger.info("### Addresses run started. Before multi.run #1 #{inspect(Multi.to_list(multi))} ###")
+    # Logger.info("### Addresses run started. Before multi.run #1 #{inspect(Multi.to_list(multi))} ###")
 
     multi
     |> Multi.run(:addresses, fn repo, _ ->
-      Logger.info("### Addresses insert started (internal, outside) ###")
+      # Logger.info("### Addresses insert started (internal, outside) ###")
       insert(repo, changes_list_with_defaults, insert_options)
     end)
     |> Multi.run(:created_address_code_indexed_at_transactions, fn repo, %{addresses: addresses}
@@ -86,7 +85,7 @@ defmodule Explorer.Chain.Import.Runner.Addresses do
           required(:timestamps) => Import.timestamps()
         }) :: {:ok, [Address.t()]}
   defp insert(repo, changes_list, %{timeout: timeout, timestamps: timestamps} = options) when is_list(changes_list) do
-    Logger.info(["### Addresses insert started ###"])
+    Logger.info(["### Addresses insert started changes_list length #{inspect(Enum.count(changes_list))} ###"])
     on_conflict = Map.get_lazy(options, :on_conflict, &default_on_conflict/0)
 
     # Enforce Address ShareLocks order (see docs: sharelocks.md)
@@ -109,8 +108,6 @@ defmodule Explorer.Chain.Import.Runner.Addresses do
     #   )
     # )
 
-    Logger.info("address changes list length " <> inspect(Enum.count(changes_list)))
-
     res =
       Import.insert_changes_list(
         repo,
@@ -123,7 +120,7 @@ defmodule Explorer.Chain.Import.Runner.Addresses do
         timestamps: timestamps
       )
 
-    Logger.info(["### Addresses insert FINISHED ###"])
+    Logger.info(["### Addresses insert FINISHED changes_list length #{inspect(Enum.count(changes_list))} ###"])
     res
   end
 
