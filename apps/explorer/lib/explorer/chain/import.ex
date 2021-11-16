@@ -13,7 +13,6 @@ defmodule Explorer.Chain.Import do
   @stages [
     Import.Stage.Addresses,
     Import.Stage.AddressReferencing,
-    Import.Stage.Transactions,
     Import.Stage.BlockReferencing,
     Import.Stage.BlockFollowing,
     Import.Stage.BlockPending
