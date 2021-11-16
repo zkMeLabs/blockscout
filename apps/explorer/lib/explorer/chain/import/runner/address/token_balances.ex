@@ -75,11 +75,12 @@ defmodule Explorer.Chain.Import.Runner.Address.TokenBalances do
 
     {:ok, inserted_changes_list_no_token_id} =
       if Enum.count(ordered_changes_list_no_token_id) > 0 do
-        Import.insert_changes_list_in_batches(
-          __MODULE__,
+        # Import.insert_changes_list_in_batches(
+        Import.insert_changes_list(
+          # __MODULE__,
           repo,
           ordered_changes_list_no_token_id,
-          100,
+          # 100,
           conflict_target:
             {:unsafe_fragment, ~s<(address_hash, token_contract_address_hash, block_number) WHERE token_id IS NULL>},
           on_conflict: on_conflict,
@@ -94,11 +95,12 @@ defmodule Explorer.Chain.Import.Runner.Address.TokenBalances do
 
     {:ok, inserted_changes_list_with_token_id} =
       if Enum.count(ordered_changes_list_with_token_id) > 0 do
-        Import.insert_changes_list_in_batches(
-          __MODULE__,
+        # Import.insert_changes_list_in_batches(
+        Import.insert_changes_list(
+          # __MODULE__,
           repo,
           ordered_changes_list_with_token_id,
-          100,
+          # 100,
           conflict_target:
             {:unsafe_fragment,
              ~s<(address_hash, token_contract_address_hash, token_id, block_number) WHERE token_id IS NOT NULL>},
