@@ -84,7 +84,7 @@ defmodule Explorer.Chain.Import.Stage do
   end
 
   @spec concurrent_multis([Runner.t()], runner_to_changes_list, %{optional(atom()) => term()}) ::
-          {Multi.t(), runner_to_changes_list}
+          {[Multi.t()], runner_to_changes_list}
   def concurrent_multis(runners, runner_to_changes_list, options) do
     # IO.inspect("Gimme runner_to_changes_list #{inspect(runner_to_changes_list)}")
     # IO.inspect("Gimme runner_to_changes_list keys #{inspect(Map.keys(runner_to_changes_list))}")
