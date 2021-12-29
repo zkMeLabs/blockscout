@@ -73,7 +73,7 @@ defmodule BlockScoutWeb.CurrencyHelpers do
       decimals == Decimal.new(0) ->
         value
 
-      Decimal.cmp(decimals, 18) == :gt ->
+      Decimal.cmp(decimals, 24) == :gt ->
         format_according_to_decimals(value, Decimal.new(18))
 
       true ->
