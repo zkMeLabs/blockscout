@@ -73,6 +73,7 @@ defmodule Explorer.Chain do
     GasUsage,
     TokenExchangeRate,
     TransactionCount,
+    Transactions,
     Uncles
   }
 
