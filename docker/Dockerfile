@@ -25,6 +25,8 @@ ENV MIX_ENV="prod"
 ENV SOCKET_ROOT="/eth/mainnet"
 ENV NETWORK_PATH="/eth/mainnet"
 ENV CHAIN_ID="1"
+ENV COIN_NAME="ETH"
+ENV SUBNETWORK="Ethereum"
 
 # Cache elixir deps
 ADD mix.exs mix.lock ./
