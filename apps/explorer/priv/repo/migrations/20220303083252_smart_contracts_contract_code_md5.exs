@@ -13,10 +13,6 @@ defmodule Explorer.Repo.Migrations.SmartContractsContractCodeMd5 do
       WHERE smart_contracts.address_hash = a.hash;
     """)
 
-    alter table(:smart_contracts) do
-      modify(:contract_code_md5, :string, null: false)
-    end
-
     drop_if_exists(index(:addresses, ["md5(contract_code::text)"], name: "addresses_contract_code_index"))
     create(index(:smart_contracts, :contract_code_md5))
   end
