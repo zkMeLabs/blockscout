@@ -2913,21 +2913,28 @@ defmodule Explorer.Chain do
   end
 
   def get_average_gas_price(num_of_blocks, safelow_percentile, average_percentile, fast_percentile) do
-    lates_gas_price_query =
+    latest_transactions_gas_price_query =
       from(
-        block in Block,
-        left_join: transaction in assoc(block, :transactions),
-        where: block.consensus == true,
+        transaction in Transaction,
         where: transaction.status == ^1,
         where: transaction.gas_price > ^0,
-        group_by: block.number,
-        order_by: [desc: block.number],
-        select: min(transaction.gas_price),
+        group_by: transaction.block_number,
+        order_by: [desc: transaction.block_number],
+        select: %{block_number: transaction.block_number, min_gas_price: min(transaction.gas_price)},
         limit: ^num_of_blocks
       )
 
+    latest_gas_price_query =
+      from(
+        q in subquery(latest_transactions_gas_price_query),
+        left_join: block in Block,
+        on: q.block_number == block.number,
+        where: block.consensus == true,
+        select: q.min_gas_price
+      )
+
     latest_gas_prices =
-      lates_gas_price_query
+      latest_gas_price_query
       |> Repo.all(timeout: :infinity)
 
     latest_ordered_gas_prices =
