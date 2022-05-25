@@ -28,6 +28,7 @@ defmodule Explorer.ChainTest do
   }
 
   alias Explorer.{Chain, Etherscan}
+  alias Explorer.Chain.Cache.Transaction, as: TransactionCache
   alias Explorer.Chain.InternalTransaction.Type
 
   alias Explorer.Chain.Supply.ProofOfAuthority
@@ -1161,6 +1162,112 @@ defmodule Explorer.ChainTest do
       fetched_transaction = List.first(Explorer.Chain.block_to_transactions(block.hash))
       assert fetched_transaction.hash == transaction.hash
       assert length(fetched_transaction.token_transfers) == 2
+    end
+  end
+
+  describe "block_to_gas_used_by_1559_txs/1" do
+    test "sum of gas_usd from all transactions including glegacy" do
+      block = insert(:block, base_fee_per_gas: 4)
+
+      insert(:transaction,
+        gas_used: 4,
+        cumulative_gas_used: 3,
+        block_number: block.number,
+        block_hash: block.hash,
+        index: 1,
+        max_fee_per_gas: 0,
+        max_priority_fee_per_gas: 3
+      )
+
+      insert(:transaction,
+        gas_used: 6,
+        cumulative_gas_used: 3,
+        block_number: block.number,
+        block_hash: block.hash,
+        index: 2
+      )
+
+      assert Decimal.new(10) == Chain.block_to_gas_used_by_1559_txs(block.hash)
+    end
+  end
+
+  describe "block_to_priority_fee_of_1559_txs/1" do
+    test "with transactions: tx.max_fee_per_gas = 0" do
+      block = insert(:block, base_fee_per_gas: 4)
+
+      insert(:transaction,
+        gas_used: 4,
+        cumulative_gas_used: 3,
+        block_number: block.number,
+        block_hash: block.hash,
+        index: 1,
+        max_fee_per_gas: 0,
+        max_priority_fee_per_gas: 3
+      )
+
+      assert Decimal.new(0) == Chain.block_to_priority_fee_of_1559_txs(block.hash)
+    end
+
+    test "with transactions: tx.max_fee_per_gas - block.base_fee_per_gas >= tx.max_priority_fee_per_gas" do
+      block = insert(:block, base_fee_per_gas: 1)
+
+      insert(:transaction,
+        gas_used: 3,
+        cumulative_gas_used: 3,
+        block_number: block.number,
+        block_hash: block.hash,
+        index: 1,
+        max_fee_per_gas: 5,
+        max_priority_fee_per_gas: 1
+      )
+
+      assert Decimal.new(3) == Chain.block_to_priority_fee_of_1559_txs(block.hash)
+    end
+
+    test "with transactions: tx.max_fee_per_gas - block.base_fee_per_gas < tx.max_priority_fee_per_gas" do
+      block = insert(:block, base_fee_per_gas: 4)
+
+      insert(:transaction,
+        gas_used: 4,
+        cumulative_gas_used: 3,
+        block_number: block.number,
+        block_hash: block.hash,
+        index: 1,
+        max_fee_per_gas: 5,
+        max_priority_fee_per_gas: 3
+      )
+
+      assert Decimal.new(4) == Chain.block_to_priority_fee_of_1559_txs(block.hash)
+    end
+
+    test "with legacy transactions" do
+      block = insert(:block, base_fee_per_gas: 1)
+
+      insert(:transaction,
+        gas_price: 5,
+        gas_used: 6,
+        cumulative_gas_used: 6,
+        block_number: block.number,
+        block_hash: block.hash,
+        index: 1
+      )
+
+      assert Decimal.new(24) == Chain.block_to_priority_fee_of_1559_txs(block.hash)
+    end
+
+    test "0 in blockchain with no EIP-1559 implemented" do
+      block = insert(:block, base_fee_per_gas: nil)
+
+      insert(:transaction,
+        gas_price: 1,
+        gas_used: 4,
+        cumulative_gas_used: 4,
+        block_number: block.number,
+        block_hash: block.hash,
+        index: 1
+      )
+
+      assert 0 == Chain.block_to_priority_fee_of_1559_txs(block.hash)
     end
   end
 
@@ -2728,7 +2835,7 @@ defmodule Explorer.ChainTest do
 
   describe "transaction_estimated_count/1" do
     test "returns integer" do
-      assert is_integer(Chain.transaction_estimated_count())
+      assert is_integer(TransactionCache.estimated_count())
     end
   end
 
@@ -5824,37 +5931,7 @@ defmodule Explorer.ChainTest do
     test "combine_proxy_implementation_abi/2 returns [] abi for unverified proxy" do
       proxy_contract_address = insert(:contract_address)
 
-      EthereumJSONRPC.Mox
-      |> expect(
-        :json_rpc,
-        fn %{
-             id: _id,
-             method: "eth_getStorageAt",
-             params: [
-               _,
-               "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",
-               "latest"
-             ]
-           },
-           _options ->
-          {:ok, "0x0000000000000000000000000000000000000000000000000000000000000000"}
-        end
-      )
-      |> expect(
-        :json_rpc,
-        fn %{
-             id: _id,
-             method: "eth_getStorageAt",
-             params: [
-               _,
-               "0xa3f0ad74e5423aebfd80d3ef4346578335a9a72aeaee59ff6cb3582b35133d50",
-               "latest"
-             ]
-           },
-           _options ->
-          {:ok, "0x0000000000000000000000000000000000000000000000000000000000000000"}
-        end
-      )
+      get_eip1967_implementation()
 
       assert Chain.combine_proxy_implementation_abi(proxy_contract_address, []) == []
     end
@@ -5911,37 +5988,7 @@ defmodule Explorer.ChainTest do
     test "get_implementation_abi_from_proxy/2 returns [] abi for unverified proxy" do
       proxy_contract_address = insert(:contract_address)
 
-      EthereumJSONRPC.Mox
-      |> expect(
-        :json_rpc,
-        fn %{
-             id: _id,
-             method: "eth_getStorageAt",
-             params: [
-               _,
-               "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",
-               "latest"
-             ]
-           },
-           _options ->
-          {:ok, "0x0000000000000000000000000000000000000000000000000000000000000000"}
-        end
-      )
-      |> expect(
-        :json_rpc,
-        fn %{
-             id: _id,
-             method: "eth_getStorageAt",
-             params: [
-               _,
-               "0xa3f0ad74e5423aebfd80d3ef4346578335a9a72aeaee59ff6cb3582b35133d50",
-               "latest"
-             ]
-           },
-           _options ->
-          {:ok, "0x0000000000000000000000000000000000000000000000000000000000000000"}
-        end
-      )
+      get_eip1967_implementation()
 
       assert Chain.combine_proxy_implementation_abi(proxy_contract_address, []) == []
     end
@@ -6068,5 +6115,45 @@ defmodule Explorer.ChainTest do
                ordered_withdraw: Decimal.new(0)
              }
     end
+  end
+
+  def get_eip1967_implementation do
+    EthereumJSONRPC.Mox
+    |> expect(:json_rpc, fn %{
+                              id: 0,
+                              method: "eth_getStorageAt",
+                              params: [
+                                _,
+                                "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",
+                                "latest"
+                              ]
+                            },
+                            _options ->
+      {:ok, "0x0000000000000000000000000000000000000000000000000000000000000000"}
+    end)
+    |> expect(:json_rpc, fn %{
+                              id: 0,
+                              method: "eth_getStorageAt",
+                              params: [
+                                _,
+                                "0xa3f0ad74e5423aebfd80d3ef4346578335a9a72aeaee59ff6cb3582b35133d50",
+                                "latest"
+                              ]
+                            },
+                            _options ->
+      {:ok, "0x0000000000000000000000000000000000000000000000000000000000000000"}
+    end)
+    |> expect(:json_rpc, fn %{
+                              id: 0,
+                              method: "eth_getStorageAt",
+                              params: [
+                                _,
+                                "0x7050c9e0f4ca769c69bd3a8ef740bc37934f8e2c036e5a723fd8ee048ed3f8c3",
+                                "latest"
+                              ]
+                            },
+                            _options ->
+      {:ok, "0x0000000000000000000000000000000000000000000000000000000000000000"}
+    end)
   end
 end
