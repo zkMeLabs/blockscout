@@ -7,7 +7,7 @@ defmodule BlockScoutWeb.ChainController do
   alias Explorer.{Chain, PagingOptions, Repo}
   alias Explorer.Chain.{Address, Block, Transaction}
   alias Explorer.Chain.Cache.Block, as: BlockCache
-  alias Explorer.Chain.Cache.GasUsage
+  # alias Explorer.Chain.Cache.GasUsage
   alias Explorer.Chain.Cache.Transaction, as: TransactionCache
   alias Explorer.Chain.Supply.{RSK, TokenBridge}
   alias Explorer.Chain.Transaction.History.TransactionStats

@@ -252,13 +252,10 @@ config :spandex_ecto, SpandexEcto.EctoLogger,
   tracer: Explorer.Tracer,
   otp_app: :explorer
 
-<<<<<<< HEAD
-=======
 config :explorer, Explorer.Chain.Cache.Blocks,
   ttl_check_interval: if(disable_indexer == "true", do: :timer.seconds(1), else: false),
   global_ttl: if(disable_indexer == "true", do: :timer.seconds(5))
 
->>>>>>> origin/master
 config :explorer, Explorer.Chain.Cache.Transactions,
   ttl_check_interval: if(disable_indexer == "true", do: :timer.seconds(1), else: false),
   global_ttl: if(disable_indexer == "true", do: :timer.seconds(5))

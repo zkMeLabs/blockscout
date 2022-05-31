@@ -1,18 +1,11 @@
-<<<<<<< HEAD
-SYSTEM = $(shell uname -s)
-HOST = host.docker.internal
-DOCKER_IMAGE = blockscout_prod_mainnet
-BS_CONTAINER_NAME = blockscout_mainnet
-=======
 SYSTEM := $(shell uname -s)
 HOST := host.docker.internal
 DOCKER_REPO := blockscout
-APP_NAME := blockscout
+APP_NAME := blockscout-mainnet
 BS_CONTAINER_IMAGE := $(DOCKER_REPO)/$(APP_NAME)
-BS_CONTAINER_NAME := blockscout
+BS_CONTAINER_NAME := blockscout-mainnet
 PG_CONTAINER_IMAGE := postgres:13.6
 PG_CONTAINER_NAME := db
->>>>>>> origin/master
 THIS_FILE = $(lastword $(MAKEFILE_LIST))
 TAG := $(RELEASE_VERSION)-prerelease-$(shell git log -1 --pretty=format:"%h")
 STABLE_TAG := $(RELEASE_VERSION)
@@ -21,15 +14,12 @@ ifeq ($(SYSTEM), Linux)
 	HOST=localhost
 endif
 
-<<<<<<< HEAD
-=======
 ifdef DATABASE_URL
 	DB_URL = $(DATABASE_URL)
 else
 	DB_URL = postgresql://postgres:@$(HOST):5432/blockscout?ssl=false
 	ECTO_USE_SSL = 'false'
 endif
->>>>>>> origin/master
 BLOCKSCOUT_CONTAINER_PARAMS = -e 'MIX_ENV=prod' \
 
 ifeq ($(SYSTEM), Linux)
@@ -523,11 +513,6 @@ migrate:
 PG_EXIST := $(shell docker ps -a --no-trunc --filter name=^/${PG_CONTAINER_NAME}$ | grep ${PG_CONTAINER_NAME})
 PG_STARTED := $(shell docker ps --no-trunc --filter name=^/${PG_CONTAINER_NAME}$ | grep ${PG_CONTAINER_NAME})
 
-<<<<<<< HEAD
-start:
-	@$(MAKE) -f $(THIS_FILE) build
-	@$(MAKE) -f $(THIS_FILE) migrate
-=======
 postgres:
 ifdef DATABASE_URL
 	@echo "==> DATABASE_URL of external DB provided. There is no need to start a container for DB."
@@ -557,7 +542,6 @@ endif
 endif
 
 start: build postgres 
->>>>>>> origin/master
 	@echo "==> Starting blockscout"
 	@docker run --rm --name $(BS_CONTAINER_NAME) \
 					$(BLOCKSCOUT_CONTAINER_PARAMS) \
@@ -625,9 +609,6 @@ tag-stable-version: ## Generate container `{version}` tag
 .PHONY: build \
 				migrate \
 				start \
-<<<<<<< HEAD
-				run 
-=======
 				stop \
 				postgres \
 				run \
@@ -640,4 +621,3 @@ tag-stable-version: ## Generate container `{version}` tag
 				tag-latest \
 				tag-version
 
->>>>>>> origin/master
