@@ -13,7 +13,7 @@ defmodule Explorer.Application do
     AddressSumMinusBurnt,
     Block,
     BlockNumber,
-    GasPriceOracle,
+    # GasPriceOracle,
     # GasUsage,
     MinMissingBlockNumber,
     NetVersion,

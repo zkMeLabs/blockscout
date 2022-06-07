@@ -378,6 +378,7 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
          timestamps: timestamps
        }) do
     Logger.info(["### Blocks new_pending_operations started ###"])
+
     if Application.get_env(:explorer, :json_rpc_named_arguments)[:variant] == EthereumJSONRPC.RSK do
       {:ok, []}
     else
