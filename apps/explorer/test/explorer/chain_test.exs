@@ -137,221 +137,6 @@ defmodule Explorer.ChainTest do
     end
   end
 
-  describe "get_average_gas_price/4" do
-    test "returns nil percentile values if no blocks in the DB" do
-      assert {:ok,
-              %{
-                "slow" => nil,
-                "average" => nil,
-                "fast" => nil
-              }} = Chain.get_average_gas_price(3, 35, 60, 90)
-    end
-
-    test "returns nil percentile values if blocks are empty in the DB" do
-      insert(:block)
-      insert(:block)
-      insert(:block)
-
-      assert {:ok,
-              %{
-                "slow" => nil,
-                "average" => nil,
-                "fast" => nil
-              }} = Chain.get_average_gas_price(3, 35, 60, 90)
-    end
-
-    test "returns nil percentile values for blocks with failed txs in the DB" do
-      block = insert(:block, number: 100, hash: "0x3e51328bccedee581e8ba35190216a61a5d67fd91ca528f3553142c0c7d18391")
-
-      :transaction
-      |> insert(
-        error: "Reverted",
-        status: :error,
-        block_hash: block.hash,
-        block_number: block.number,
-        cumulative_gas_used: 884_322,
-        gas_used: 106_025,
-        index: 0,
-        gas_price: 100,
-        hash: "0xac2a7dab94d965893199e7ee01649e2d66f0787a4c558b3118c09e80d4df8269"
-      )
-
-      assert {:ok,
-              %{
-                "slow" => nil,
-                "average" => nil,
-                "fast" => nil
-              }} = Chain.get_average_gas_price(3, 35, 60, 90)
-    end
-
-    test "returns nil percentile values for transactions with 0 gas price aka 'whitelisted transactions' in the DB" do
-      block1 = insert(:block, number: 100, hash: "0x3e51328bccedee581e8ba35190216a61a5d67fd91ca528f3553142c0c7d18391")
-      block2 = insert(:block, number: 101, hash: "0x76c3da57334fffdc66c0d954dce1a910fcff13ec889a13b2d8b0b6e9440ce729")
-
-      :transaction
-      |> insert(
-        status: :ok,
-        block_hash: block1.hash,
-        block_number: block1.number,
-        cumulative_gas_used: 884_322,
-        gas_used: 106_025,
-        index: 0,
-        gas_price: 0,
-        hash: "0xac2a7dab94d965893199e7ee01649e2d66f0787a4c558b3118c09e80d4df8269"
-      )
-
-      :transaction
-      |> insert(
-        status: :ok,
-        block_hash: block2.hash,
-        block_number: block2.number,
-        cumulative_gas_used: 884_322,
-        gas_used: 106_025,
-        index: 0,
-        gas_price: 0,
-        hash: "0x5d5c2776f96704e7845f7d3c1fbba6685ab6efd6f82b6cd11d549f3b3a46bd03"
-      )
-
-      assert {:ok,
-              %{
-                "slow" => nil,
-                "average" => nil,
-                "fast" => nil
-              }} = Chain.get_average_gas_price(2, 35, 60, 90)
-    end
-
-    test "returns the same percentile values if gas price is the same over transactions" do
-      block1 = insert(:block, number: 100, hash: "0x3e51328bccedee581e8ba35190216a61a5d67fd91ca528f3553142c0c7d18391")
-      block2 = insert(:block, number: 101, hash: "0x76c3da57334fffdc66c0d954dce1a910fcff13ec889a13b2d8b0b6e9440ce729")
-
-      :transaction
-      |> insert(
-        status: :ok,
-        block_hash: block1.hash,
-        block_number: block1.number,
-        cumulative_gas_used: 884_322,
-        gas_used: 106_025,
-        index: 0,
-        gas_price: 1_000_000_000,
-        hash: "0xac2a7dab94d965893199e7ee01649e2d66f0787a4c558b3118c09e80d4df8269"
-      )
-
-      :transaction
-      |> insert(
-        status: :ok,
-        block_hash: block2.hash,
-        block_number: block2.number,
-        cumulative_gas_used: 884_322,
-        gas_used: 106_025,
-        index: 0,
-        gas_price: 1_000_000_000,
-        hash: "0x5d5c2776f96704e7845f7d3c1fbba6685ab6efd6f82b6cd11d549f3b3a46bd03"
-      )
-
-      assert {:ok,
-              %{
-                "slow" => 1.0,
-                "average" => 1.0,
-                "fast" => 1.0
-              }} = Chain.get_average_gas_price(2, 35, 60, 90)
-    end
-
-    test "returns correct min gas price from the block" do
-      block1 = insert(:block, number: 100, hash: "0x3e51328bccedee581e8ba35190216a61a5d67fd91ca528f3553142c0c7d18391")
-      block2 = insert(:block, number: 101, hash: "0x76c3da57334fffdc66c0d954dce1a910fcff13ec889a13b2d8b0b6e9440ce729")
-
-      :transaction
-      |> insert(
-        status: :ok,
-        block_hash: block1.hash,
-        block_number: block1.number,
-        cumulative_gas_used: 884_322,
-        gas_used: 106_025,
-        index: 0,
-        gas_price: 1_000_000_000,
-        hash: "0xac2a7dab94d965893199e7ee01649e2d66f0787a4c558b3118c09e80d4df8269"
-      )
-
-      :transaction
-      |> insert(
-        status: :ok,
-        block_hash: block2.hash,
-        block_number: block2.number,
-        cumulative_gas_used: 884_322,
-        gas_used: 106_025,
-        index: 0,
-        gas_price: 1_000_000_000,
-        hash: "0x5d5c2776f96704e7845f7d3c1fbba6685ab6efd6f82b6cd11d549f3b3a46bd03"
-      )
-
-      :transaction
-      |> insert(
-        status: :ok,
-        block_hash: block2.hash,
-        block_number: block2.number,
-        cumulative_gas_used: 884_322,
-        gas_used: 106_025,
-        index: 1,
-        gas_price: 3_000_000_000,
-        hash: "0x906b80861b4a0921acfbb91a7b527227b0d32adabc88bc73e8c52ff714e55016"
-      )
-
-      assert {:ok,
-              %{
-                "slow" => 1.0,
-                "average" => 1.0,
-                "fast" => 1.0
-              }} = Chain.get_average_gas_price(3, 35, 60, 90)
-    end
-
-    test "returns correct average percentile" do
-      block1 = insert(:block, number: 100, hash: "0x3e51328bccedee581e8ba35190216a61a5d67fd91ca528f3553142c0c7d18391")
-      block2 = insert(:block, number: 101, hash: "0x76c3da57334fffdc66c0d954dce1a910fcff13ec889a13b2d8b0b6e9440ce729")
-      block3 = insert(:block, number: 102, hash: "0x659b2a1cc4dd1a5729900cf0c81c471d1c7891b2517bf9466f7fba56ead2fca0")
-
-      :transaction
-      |> insert(
-        status: :ok,
-        block_hash: block1.hash,
-        block_number: block1.number,
-        cumulative_gas_used: 884_322,
-        gas_used: 106_025,
-        index: 0,
-        gas_price: 2_000_000_000,
-        hash: "0xac2a7dab94d965893199e7ee01649e2d66f0787a4c558b3118c09e80d4df8269"
-      )
-
-      :transaction
-      |> insert(
-        status: :ok,
-        block_hash: block2.hash,
-        block_number: block2.number,
-        cumulative_gas_used: 884_322,
-        gas_used: 106_025,
-        index: 0,
-        gas_price: 4_000_000_000,
-        hash: "0x5d5c2776f96704e7845f7d3c1fbba6685ab6efd6f82b6cd11d549f3b3a46bd03"
-      )
-
-      :transaction
-      |> insert(
-        status: :ok,
-        block_hash: block3.hash,
-        block_number: block3.number,
-        cumulative_gas_used: 884_322,
-        gas_used: 106_025,
-        index: 0,
-        gas_price: 4_000_000_000,
-        hash: "0x7d4bc5569053fc29f471901e967c9e60205ac7a122b0e9a789683652c34cc11a"
-      )
-
-      assert {:ok,
-              %{
-                "average" => 4.0
-              }} = Chain.get_average_gas_price(3, 35, 60, 90)
-    end
-  end
-
   describe "ERC721_token_instance_from_token_id_and_token_address/2" do
     test "return ERC721 token instance" do
       contract_address = insert(:address)
@@ -1400,7 +1185,7 @@ defmodule Explorer.ChainTest do
     end
   end
 
-  describe "finished_indexing?/0" do
+  describe "finished_internal_transactions_indexing?/0" do
     test "finished indexing" do
       block = insert(:block, number: 1)
 
@@ -1408,11 +1193,11 @@ defmodule Explorer.ChainTest do
       |> insert()
       |> with_block(block)
 
-      assert Chain.finished_indexing?()
+      assert Chain.finished_internal_transactions_indexing?()
     end
 
     test "finished indexing (no txs)" do
-      assert Chain.finished_indexing?()
+      assert Chain.finished_internal_transactions_indexing?()
     end
 
     test "not finished indexing" do
@@ -1424,7 +1209,7 @@ defmodule Explorer.ChainTest do
 
       insert(:pending_block_operation, block: block, fetch_internal_transactions: true)
 
-      refute Chain.finished_indexing?()
+      refute Chain.finished_internal_transactions_indexing?()
     end
   end
 
@@ -1682,12 +1467,18 @@ defmodule Explorer.ChainTest do
   end
 
   describe "indexed_ratio/0" do
+    setup do
+      on_exit(fn ->
+        Application.put_env(:indexer, :first_block, "")
+      end)
+    end
+
     test "returns indexed ratio" do
       for index <- 5..9 do
         insert(:block, number: index)
       end
 
-      assert Decimal.cmp(Chain.indexed_ratio(), Decimal.from_float(0.5)) == :eq
+      assert Decimal.compare(Chain.indexed_ratio(), Decimal.from_float(0.5)) == :eq
     end
 
     test "returns 0 if no blocks" do
@@ -1700,7 +1491,18 @@ defmodule Explorer.ChainTest do
         Process.sleep(200)
       end
 
-      assert Decimal.cmp(Chain.indexed_ratio(), 1) == :eq
+      assert Decimal.compare(Chain.indexed_ratio(), 1) == :eq
+    end
+
+    test "returns 1.0 if fully indexed blocks starting from given FIRST_BLOCK" do
+      Application.put_env(:indexer, :first_block, "5")
+
+      for index <- 5..9 do
+        insert(:block, number: index)
+        Process.sleep(200)
+      end
+
+      assert Decimal.compare(Chain.indexed_ratio(), 1) == :eq
     end
   end
 
@@ -5017,7 +4819,7 @@ defmodule Explorer.ChainTest do
   end
 
   describe "stream_unfetched_token_instances/2" do
-    test "reduces wuth given reducer and accumulator" do
+    test "reduces with given reducer and accumulator for ERC-721 token" do
       token_contract_address = insert(:contract_address)
       token = insert(:token, contract_address: token_contract_address, type: "ERC-721")
 
@@ -5042,7 +4844,33 @@ defmodule Explorer.ChainTest do
       assert result.contract_address_hash == token_transfer.token_contract_address_hash
     end
 
-    test "does not fetch token transfers without token id" do
+    test "reduces with given reducer and accumulator for ERC-1155 token" do
+      token_contract_address = insert(:contract_address)
+      token = insert(:token, contract_address: token_contract_address, type: "ERC-1155")
+
+      transaction =
+        :transaction
+        |> insert()
+        |> with_block(insert(:block, number: 1))
+
+      token_transfer =
+        insert(
+          :token_transfer,
+          block_number: 1000,
+          to_address: build(:address),
+          transaction: transaction,
+          token_contract_address: token_contract_address,
+          token: token,
+          token_id: nil,
+          token_ids: [11]
+        )
+
+      assert {:ok, [result]} = Chain.stream_unfetched_token_instances([], &[&1 | &2])
+      assert result.token_ids == token_transfer.token_ids
+      assert result.contract_address_hash == token_transfer.token_contract_address_hash
+    end
+
+    test "does not fetch token transfers without token id or token_ids" do
       token_contract_address = insert(:contract_address)
       token = insert(:token, contract_address: token_contract_address, type: "ERC-721")
 
@@ -5058,7 +4886,8 @@ defmodule Explorer.ChainTest do
         transaction: transaction,
         token_contract_address: token_contract_address,
         token: token,
-        token_id: nil
+        token_id: nil,
+        token_ids: nil
       )
 
       assert {:ok, []} = Chain.stream_unfetched_token_instances([], &[&1 | &2])
@@ -5229,7 +5058,7 @@ defmodule Explorer.ChainTest do
       token_balances =
         address.hash
         |> Chain.fetch_last_token_balances()
-        |> Enum.map(fn {token_balance, _, _} -> token_balance.address_hash end)
+        |> Enum.map(fn {token_balance, _} -> token_balance.address_hash end)
 
       assert token_balances == [current_token_balance.address_hash]
     end
@@ -5723,7 +5552,7 @@ defmodule Explorer.ChainTest do
       refute Chain.contract_address?(to_string(address.hash), 1)
     end
 
-    @tag :no_parity
+    @tag :no_nethermind
     @tag :no_geth
     test "returns true if fetched code from json rpc", %{
       json_rpc_named_arguments: json_rpc_named_arguments
@@ -5746,7 +5575,7 @@ defmodule Explorer.ChainTest do
       assert Chain.contract_address?(to_string(hash), 1, json_rpc_named_arguments)
     end
 
-    @tag :no_parity
+    @tag :no_nethermind
     @tag :no_geth
     test "returns false if no fetched code from json rpc", %{
       json_rpc_named_arguments: json_rpc_named_arguments
@@ -5767,173 +5596,6 @@ defmodule Explorer.ChainTest do
       end
 
       refute Chain.contract_address?(to_string(hash), 1, json_rpc_named_arguments)
-    end
-  end
-
-  describe "staking_pools/3" do
-    test "validators staking pools" do
-      inserted_validator = insert(:staking_pool, is_active: true, is_validator: true)
-      insert(:staking_pool, is_active: true, is_validator: false)
-
-      options = %PagingOptions{page_size: 20, page_number: 1}
-
-      assert [%{pool: gotten_validator}] = Chain.staking_pools(:validator, options)
-      assert inserted_validator.staking_address_hash == gotten_validator.staking_address_hash
-    end
-
-    test "active staking pools" do
-      inserted_pool = insert(:staking_pool, is_active: true)
-      insert(:staking_pool, is_active: false)
-
-      options = %PagingOptions{page_size: 20, page_number: 1}
-
-      assert [%{pool: gotten_pool}] = Chain.staking_pools(:active, options)
-      assert inserted_pool.staking_address_hash == gotten_pool.staking_address_hash
-    end
-
-    test "all active staking pools ordered by staking_address" do
-      address1 = Factory.address_hash()
-      address2 = Factory.address_hash()
-      address3 = Factory.address_hash()
-
-      assert address1 < address2 and address2 < address3
-
-      # insert pools in descending order
-      insert(:staking_pool, is_active: true, staking_address_hash: address3)
-      insert(:staking_pool, is_active: true, staking_address_hash: address2)
-      insert(:staking_pool, is_active: true, staking_address_hash: address1)
-
-      # get all active pools in ascending order
-      assert [%{pool: pool1}, %{pool: pool2}, %{pool: pool3}] = Chain.staking_pools(:active, :all)
-      assert pool1.staking_address_hash == address1
-      assert pool2.staking_address_hash == address2
-      assert pool3.staking_address_hash == address3
-    end
-
-    test "staking pools ordered by stakes_ratio, is_active, and staking_address_hash" do
-      address1 = Factory.address_hash()
-      address2 = Factory.address_hash()
-      address3 = Factory.address_hash()
-      address4 = Factory.address_hash()
-      address5 = Factory.address_hash()
-      address6 = Factory.address_hash()
-
-      assert address1 < address2 and address2 < address3 and address3 < address4 and address4 < address5 and
-               address5 < address6
-
-      # insert pools in descending order
-      insert(:staking_pool, is_validator: true, is_active: false, staking_address_hash: address6, stakes_ratio: 0)
-      insert(:staking_pool, is_validator: true, is_active: false, staking_address_hash: address5, stakes_ratio: 0)
-      insert(:staking_pool, is_validator: true, is_active: true, staking_address_hash: address4, stakes_ratio: 30)
-      insert(:staking_pool, is_validator: true, is_active: true, staking_address_hash: address3, stakes_ratio: 60)
-      insert(:staking_pool, is_validator: true, is_active: true, staking_address_hash: address2, stakes_ratio: 5)
-      insert(:staking_pool, is_validator: true, is_active: true, staking_address_hash: address1, stakes_ratio: 5)
-
-      # get all pools in the order `desc: :stakes_ratio, desc: :is_active, asc: :staking_address_hash`
-      options = %PagingOptions{page_size: 20, page_number: 1}
-
-      assert [
-               %{pool: pool1},
-               %{pool: pool2},
-               %{pool: pool3},
-               %{pool: pool4},
-               %{pool: pool5},
-               %{pool: pool6}
-             ] = Chain.staking_pools(:validator, options)
-
-      assert pool1.staking_address_hash == address3
-      assert pool2.staking_address_hash == address4
-      assert pool3.staking_address_hash == address1
-      assert pool4.staking_address_hash == address2
-      assert pool5.staking_address_hash == address5
-      assert pool6.staking_address_hash == address6
-    end
-
-    test "inactive staking pools" do
-      insert(:staking_pool, is_active: true)
-      inserted_pool = insert(:staking_pool, is_active: false)
-
-      options = %PagingOptions{page_size: 20, page_number: 1}
-
-      assert [%{pool: gotten_pool}] = Chain.staking_pools(:inactive, options)
-      assert inserted_pool.staking_address_hash == gotten_pool.staking_address_hash
-    end
-  end
-
-  describe "staking_pools_count/1" do
-    test "validators staking pools" do
-      insert(:staking_pool, is_active: true, is_validator: true)
-      insert(:staking_pool, is_active: true, is_validator: false)
-
-      assert Chain.staking_pools_count(:validator) == 1
-    end
-
-    test "active staking pools" do
-      insert(:staking_pool, is_active: true)
-      insert(:staking_pool, is_active: false)
-
-      assert Chain.staking_pools_count(:active) == 1
-    end
-
-    test "inactive staking pools" do
-      insert(:staking_pool, is_active: true)
-      insert(:staking_pool, is_active: false)
-
-      assert Chain.staking_pools_count(:inactive) == 1
-    end
-  end
-
-  describe "delegators_count_sum/1" do
-    test "validators pools" do
-      insert(:staking_pool, is_active: true, is_validator: true, delegators_count: 10)
-      insert(:staking_pool, is_active: true, is_validator: false, delegators_count: 7)
-      insert(:staking_pool, is_active: true, is_validator: true, delegators_count: 5)
-
-      assert Chain.delegators_count_sum(:validator) == 15
-    end
-
-    test "active staking pools" do
-      insert(:staking_pool, is_active: true, delegators_count: 10)
-      insert(:staking_pool, is_active: true, delegators_count: 7)
-      insert(:staking_pool, is_active: false, delegators_count: 5)
-
-      assert Chain.delegators_count_sum(:active) == 17
-    end
-
-    test "inactive staking pools" do
-      insert(:staking_pool, is_active: true, delegators_count: 10)
-      insert(:staking_pool, is_active: true, delegators_count: 7)
-      insert(:staking_pool, is_active: false, delegators_count: 5)
-      insert(:staking_pool, is_active: false, delegators_count: 1)
-
-      assert Chain.delegators_count_sum(:inactive) == 6
-    end
-  end
-
-  describe "total_staked_amount_sum/1" do
-    test "validators pools" do
-      insert(:staking_pool, is_active: true, is_validator: true, total_staked_amount: 10)
-      insert(:staking_pool, is_active: true, is_validator: false, total_staked_amount: 7)
-      insert(:staking_pool, is_active: true, is_validator: true, total_staked_amount: 5)
-
-      assert Chain.total_staked_amount_sum(:validator) == Decimal.new("15")
-    end
-
-    test "active staking pools" do
-      insert(:staking_pool, is_active: true, total_staked_amount: 10)
-      insert(:staking_pool, is_active: true, total_staked_amount: 7)
-      insert(:staking_pool, is_active: false, total_staked_amount: 5)
-
-      assert Chain.total_staked_amount_sum(:active) == Decimal.new("17")
-    end
-
-    test "inactive staking pools" do
-      insert(:staking_pool, is_active: true, total_staked_amount: 10)
-      insert(:staking_pool, is_active: true, total_staked_amount: 7)
-      insert(:staking_pool, is_active: false, total_staked_amount: 5)
-      insert(:staking_pool, is_active: false, total_staked_amount: 1)
-
-      assert Chain.total_staked_amount_sum(:inactive) == Decimal.new("6")
     end
   end
 
@@ -6373,18 +6035,6 @@ defmodule Explorer.ChainTest do
       implementation_abi = Chain.get_implementation_abi("0x" <> implementation_contract_address_hash_string)
 
       assert implementation_abi == @implementation_abi
-    end
-
-    test "get_total_staked_and_ordered should return just nil in case of invalid input and some response otherwise" do
-      assert Chain.get_total_staked_and_ordered(nil) == nil
-      assert Chain.get_total_staked_and_ordered(%{}) == nil
-      assert Chain.get_total_staked_and_ordered("") == nil
-      assert Chain.get_total_staked_and_ordered([]) == nil
-
-      assert Chain.get_total_staked_and_ordered("0x3f7c51ef174ee8a62e3fcfb0947aa90c97bd2784") == %{
-               stake_amount: Decimal.new(0),
-               ordered_withdraw: Decimal.new(0)
-             }
     end
   end
 
