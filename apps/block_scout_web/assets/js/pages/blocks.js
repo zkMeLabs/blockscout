@@ -1,10 +1,10 @@
 import $ from 'jquery'
-import omit from 'lodash/omit'
-import last from 'lodash/last'
-import min from 'lodash/min'
-import max from 'lodash/max'
-import keys from 'lodash/keys'
-import rangeRight from 'lodash/rangeRight'
+import omit from 'lodash.omit'
+import last from 'lodash.last'
+import min from 'lodash.min'
+import max from 'lodash.max'
+import keys from 'lodash.keys'
+import rangeRight from 'lodash.rangeright'
 import humps from 'humps'
 import socket from '../socket'
 import { connectElements } from '../lib/redux_helpers.js'
@@ -71,6 +71,7 @@ function withMissingBlocks (reducer) {
     const blockNumbers = keys(blockNumbersToItems).map(x => parseInt(x, 10))
     const minBlock = min(blockNumbers)
     const maxBlock = max(blockNumbers)
+    if (maxBlock - minBlock > 100) return result
 
     return Object.assign({}, result, {
       items: rangeRight(minBlock, maxBlock + 1)
