@@ -3,23 +3,25 @@ import { openErrorModal, openWarningModal, openSuccessModal, openModalWithMessag
 import { compareChainIDs, formatError, formatTitleAndError, getContractABI, getCurrentAccountPromise, getMethodInputs, prepareMethodArgs } from './common_helpers'
 import BigNumber from 'bignumber.js'
 
-export const queryMethod = (isWalletEnabled, url, $methodId, args, type, functionName, $responseContainer) => {
-  let data = {
+export const queryMethod = (isWalletEnabled, url, $methodId, args, type, functionName, $responseContainer, isCustomABI) => {
+  const data = {
     function_name: functionName,
     method_id: $methodId.val(),
-    type: type,
-    args
+    type,
+    is_custom_abi: isCustomABI
   }
+
+  data.args_count = args.length
+  let i = args.length
+
+  while (i--) {
+    data['arg_' + i] = args[i]
+  }
+
   if (isWalletEnabled) {
     getCurrentAccountPromise(window.web3 && window.web3.currentProvider)
       .then((currentAccount) => {
-        data = {
-          function_name: functionName,
-          method_id: $methodId.val(),
-          type: type,
-          from: currentAccount,
-          args
-        }
+        data.from = currentAccount
         $.get(url, data, response => $responseContainer.html(response))
       }
       )
@@ -61,7 +63,7 @@ export const callMethod = (isWalletEnabled, $functionInputs, explorerChainId, $f
                 openErrorModal(titleAndError.title.length ? titleAndError.title : `Error in sending transaction for method "${functionName}"`, message, false)
               })
               .on('transactionHash', function (txHash) {
-                onTransactionHash(txHash, $element, functionName)
+                onTransactionHash(txHash, functionName)
               })
           } else {
             const txParams = {
@@ -74,7 +76,7 @@ export const callMethod = (isWalletEnabled, $functionInputs, explorerChainId, $f
               params: [txParams]
             })
               .then(function (txHash) {
-                onTransactionHash(txHash, $element, functionName)
+                onTransactionHash(txHash, functionName)
               })
               .catch(function (error) {
                 openErrorModal('Error in sending transaction for fallback method', formatError(error), false)
@@ -87,8 +89,8 @@ export const callMethod = (isWalletEnabled, $functionInputs, explorerChainId, $f
     })
 }
 
-function onTransactionHash (txHash, $element, functionName) {
-  openModalWithMessage($element.find('#pending-contract-write'), true, txHash)
+function onTransactionHash (txHash, functionName) {
+  openModalWithMessage($('#pending-contract-write'), true, txHash)
   const getTxReceipt = (txHash) => {
     window.ethereum.request({
       method: 'eth_getTransactionReceipt',
