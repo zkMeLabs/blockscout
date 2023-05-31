@@ -18,9 +18,12 @@
 - [#7546](https://github.com/blockscout/blockscout/pull/7546) - API v2: fix today coin price (use in-memory or cached in DB value)
 - [#7545](https://github.com/blockscout/blockscout/pull/7545) - API v2: Check if cached exchange rate is empty before replacing DB value in stats API
 - [#7516](https://github.com/blockscout/blockscout/pull/7516) - Fix shrinking logo in Safari
+- [#7590](https://github.com/blockscout/blockscout/pull/7590) - Drop genesis block in internal transactions fetcher
+- [#7598](https://github.com/blockscout/blockscout/pull/7598) - Fix created_contract_address_hash detection
 
 ### Chore
 
+- [#7594](https://github.com/blockscout/blockscout/pull/7594) - Stats service support in docker-compose config with new frontend
 - [#7576](https://github.com/blockscout/blockscout/pull/7576) - Check left blocks in pending block operations in order to decide, if we need to display indexing int tx banner at the top
 - [#7543](https://github.com/blockscout/blockscout/pull/7543) - Allow hyphen in DB username
 
@@ -35,6 +38,7 @@
 
 - [#7439](https://github.com/blockscout/blockscout/pull/7439) - Define batch size for token balance fetcher via runtime env var
 - [#7298](https://github.com/blockscout/blockscout/pull/7298) - Add changes to support force email verification
+- [#7422](https://github.com/blockscout/blockscout/pull/7422) - Refactor state changes
 - [#7416](https://github.com/blockscout/blockscout/pull/7416) - Add option to disable reCAPTCHA
 - [#6694](https://github.com/blockscout/blockscout/pull/6694) - Add withdrawals support (EIP-4895)
 - [#7355](https://github.com/blockscout/blockscout/pull/7355) - Add endpoint for token info import
