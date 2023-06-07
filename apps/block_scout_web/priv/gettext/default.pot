@@ -86,7 +86,7 @@ msgstr ""
 msgid ") may be added for each contract. Click the Add Library button to add an additional one."
 msgstr ""
 
-#: lib/block_scout_web/templates/layout/app.html.eex:90
+#: lib/block_scout_web/templates/layout/app.html.eex:99
 #, elixir-autogen, elixir-format
 msgid "- We're indexing this chain right now. Some of the counts may be inaccurate."
 msgstr ""
@@ -122,7 +122,7 @@ msgstr ""
 msgid "A block producer who successfully included the block onto the blockchain."
 msgstr ""
 
-#: lib/block_scout_web/templates/layout/app.html.eex:97
+#: lib/block_scout_web/templates/layout/app.html.eex:106
 #, elixir-autogen, elixir-format
 msgid "A confirmation email was sent to"
 msgstr ""
@@ -501,7 +501,7 @@ msgstr ""
 msgid "Block Height"
 msgstr ""
 
-#: lib/block_scout_web/templates/layout/app.html.eex:47
+#: lib/block_scout_web/templates/layout/app.html.eex:56
 #, elixir-autogen, elixir-format
 msgid "Block Mined, awaiting import..."
 msgstr ""
@@ -548,7 +548,7 @@ msgstr ""
 msgid "Blocks"
 msgstr ""
 
-#: lib/block_scout_web/templates/layout/app.html.eex:46
+#: lib/block_scout_web/templates/layout/app.html.eex:55
 #, elixir-autogen, elixir-format
 msgid "Blocks Indexed"
 msgstr ""
@@ -561,7 +561,7 @@ msgstr ""
 msgid "Blocks Validated"
 msgstr ""
 
-#: lib/block_scout_web/templates/layout/app.html.eex:48
+#: lib/block_scout_web/templates/layout/app.html.eex:57
 #, elixir-autogen, elixir-format
 msgid "Blocks With Internal Transactions Indexed"
 msgstr ""
@@ -1641,7 +1641,7 @@ msgstr ""
 msgid "Learn more"
 msgstr ""
 
-#: lib/block_scout_web/templates/layout/app.html.eex:49
+#: lib/block_scout_web/templates/layout/app.html.eex:58
 #, elixir-autogen, elixir-format
 msgid "Less than"
 msgstr ""
@@ -1730,7 +1730,7 @@ msgid "Main Networks"
 msgstr ""
 
 #: lib/block_scout_web/templates/chain/show.html.eex:53
-#: lib/block_scout_web/templates/layout/app.html.eex:50
+#: lib/block_scout_web/templates/layout/app.html.eex:59
 #: lib/block_scout_web/templates/tokens/overview/_details.html.eex:85
 #: lib/block_scout_web/views/address_view.ex:145
 #, elixir-autogen, elixir-format
@@ -2082,7 +2082,7 @@ msgid "Play"
 msgstr ""
 
 #: lib/block_scout_web/templates/layout/_account_menu_item.html.eex:22
-#: lib/block_scout_web/templates/layout/app.html.eex:97
+#: lib/block_scout_web/templates/layout/app.html.eex:106
 #, elixir-autogen, elixir-format
 msgid "Please confirm your email address to use the My Account feature."
 msgstr ""
@@ -2123,7 +2123,7 @@ msgid "Press / and focus will be moved to the search field"
 msgstr ""
 
 #: lib/block_scout_web/templates/chain/show.html.eex:42
-#: lib/block_scout_web/templates/layout/app.html.eex:51
+#: lib/block_scout_web/templates/layout/app.html.eex:60
 #: lib/block_scout_web/templates/tokens/overview/_details.html.eex:96
 #, elixir-autogen, elixir-format
 msgid "Price"
@@ -2262,7 +2262,7 @@ msgstr ""
 msgid "Request to edit a public tag/label"
 msgstr ""
 
-#: lib/block_scout_web/templates/layout/app.html.eex:97
+#: lib/block_scout_web/templates/layout/app.html.eex:106
 #, elixir-autogen, elixir-format
 msgid "Resend verification email"
 msgstr ""
@@ -3139,7 +3139,7 @@ msgstr ""
 msgid "Twitter"
 msgstr ""
 
-#: lib/block_scout_web/templates/layout/app.html.eex:53
+#: lib/block_scout_web/templates/layout/app.html.eex:62
 #, elixir-autogen, elixir-format
 msgid "Tx/day"
 msgstr ""
@@ -3612,7 +3612,7 @@ msgstr ""
 msgid "of"
 msgstr ""
 
-#: lib/block_scout_web/templates/layout/app.html.eex:97
+#: lib/block_scout_web/templates/layout/app.html.eex:106
 #, elixir-autogen, elixir-format
 msgid "on sign up. Didn’t receive?"
 msgstr ""
