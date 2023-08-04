@@ -53,6 +53,8 @@ defmodule BlockScoutWeb.WeiHelper do
       "10"
   """
   @spec format_wei_value(Wei.t(), Wei.unit(), format_options()) :: String.t()
+  def format_wei_value(nil, unit, _options) when unit in @valid_units, do: nil
+
   def format_wei_value(%Wei{} = wei, unit, options \\ []) when unit in @valid_units do
     converted_value =
       wei
