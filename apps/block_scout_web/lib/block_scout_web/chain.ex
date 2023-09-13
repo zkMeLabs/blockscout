@@ -516,6 +516,7 @@ defmodule BlockScoutWeb.Chain do
     %{"index" => index}
   end
 
+  # clause for zkEVM batches pagination
   defp paging_params(%TransactionBatch{number: number}) do
     %{"number" => number}
   end
