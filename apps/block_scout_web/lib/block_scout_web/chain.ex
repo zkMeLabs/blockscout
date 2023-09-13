@@ -124,6 +124,7 @@ defmodule BlockScoutWeb.Chain do
     Map.put(next_page_params, "items_count", items_count)
   end
 
+  @spec paging_options(map()) :: list()
   def paging_options(%{"hash" => hash, "fetched_coin_balance" => fetched_coin_balance}) do
     with {coin_balance, ""} <- Integer.parse(fetched_coin_balance),
          {:ok, address_hash} <- string_to_address_hash(hash) do
