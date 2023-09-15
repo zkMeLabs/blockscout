@@ -49,6 +49,7 @@ defmodule Explorer.Application do
       Explorer.Repo.Replica1,
       Explorer.Repo.Account,
       Explorer.Repo.PolygonEdge,
+      Explorer.Repo.PolygonZkevm,
       Explorer.Repo.RSK,
       Explorer.Vault,
       Supervisor.child_spec({SpandexDatadog.ApiServer, datadog_opts()}, id: SpandexDatadog.ApiServer),
