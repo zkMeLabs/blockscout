@@ -124,6 +124,10 @@ defmodule BlockScoutWeb.Chain do
     Map.put(next_page_params, "items_count", items_count)
   end
 
+  @doc """
+    Makes Explorer.PagingOptions map. Overloaded by different params in the input map
+    for different modules using this function.
+  """
   @spec paging_options(map()) :: list()
   def paging_options(%{"hash" => hash, "fetched_coin_balance" => fetched_coin_balance}) do
     with {coin_balance, ""} <- Integer.parse(fetched_coin_balance),
