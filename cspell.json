@@ -528,7 +528,9 @@
         "secp",
         "qwertyuioiuytrewertyuioiuytrertyuio",
         "urlset",
-        "lastmod"
+        "lastmod",
+        "qitmeer",
+        "meer",
     ],
     "enableFiletypes": [
         "dotenv",
