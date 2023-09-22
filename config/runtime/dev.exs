@@ -83,6 +83,14 @@ config :explorer, Explorer.Repo.RSK,
   url: System.get_env("DATABASE_URL"),
   pool_size: pool_size
 
+# Configure Suave database
+config :explorer, Explorer.Repo.Suave,
+  database: database,
+  hostname: hostname,
+  url: ExplorerConfigHelper.get_suave_db_url(),
+  pool_size: ConfigHelper.parse_integer_env_var("SUAVE_POOL_SIZE", 10)
+
+
 variant = Variant.get()
 
 Code.require_file("#{variant}.exs", "apps/explorer/config/dev")
