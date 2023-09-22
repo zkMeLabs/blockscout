@@ -5,11 +5,12 @@ defmodule ConfigHelper do
   alias Indexer.Transform.Blocks
 
   def repos do
-    if System.get_env("CHAIN_TYPE") == "polygon_edge" do
-      [Explorer.Repo, Explorer.Repo.Account, Explorer.Repo.PolygonEdge]
-    else
-      [Explorer.Repo, Explorer.Repo.Account]
-    end
+    [Explorer.Repo, Explorer.Repo.Account] ++
+      case System.get_env("CHAIN_TYPE") do
+        "polygon_edge" -> [Explorer.Repo.PolygonEdge]
+        "suave" -> [Explorer.Repo.Suave]
+        _ -> []
+      end
   end
 
   @spec hackney_options() :: any()

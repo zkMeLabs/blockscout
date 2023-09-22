@@ -76,6 +76,13 @@ config :explorer, Explorer.Repo.PolygonEdge,
   url: System.get_env("DATABASE_URL"),
   pool_size: ConfigHelper.parse_integer_env_var("POLYGON_EDGE_POOL_SIZE", 10)
 
+# Configure Suave database
+config :explorer, Explorer.Repo.Suave,
+  database: database_account,
+  hostname: hostname_account,
+  url: ExplorerConfigHelper.get_suave_db_url(),
+  pool_size: ConfigHelper.parse_integer_env_var("SUAVE_POOL_SIZE", 10)
+
 variant = Variant.get()
 
 Code.require_file("#{variant}.exs", "apps/explorer/config/dev")
