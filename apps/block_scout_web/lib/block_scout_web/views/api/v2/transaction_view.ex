@@ -421,7 +421,18 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
         |> Map.put("polygon_edge_withdrawal", polygon_edge_withdrawal(transaction.hash, conn))
 
       "suave" ->
-        Map.put(result, "allowed_peekers", suave_parse_allowed_peekers(transaction.logs))
+        result
+        |> Map.put("allowed_peekers", suave_parse_allowed_peekers(transaction.logs))
+        |> Map.put(
+          "execution_node",
+          Helper.address_with_info(
+            single_tx? && conn,
+            transaction.execution_node,
+            transaction.execution_node_hash,
+            single_tx?,
+            watchlist_names
+          )
+        )
 
       _ -> result
     end
