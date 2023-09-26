@@ -63,7 +63,8 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
   @api_true [api?: true]
 
   def transaction(conn, %{"transaction_hash_param" => transaction_hash_string} = params) do
-    necessity_by_association_with_actions = Map.put(@transaction_necessity_by_association, :transaction_actions, :optional)
+    necessity_by_association_with_actions =
+      Map.put(@transaction_necessity_by_association, :transaction_actions, :optional)
 
     necessity_by_association =
       if Application.get_env(:explorer, :chain_type) == "suave" do
