@@ -8,7 +8,7 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
   alias BlockScoutWeb.TransactionStateView
   alias Ecto.Association.NotLoaded
   alias Explorer.{Chain, Market}
-  alias Explorer.Chain.{Address, Block, InternalTransaction, Log, Token, Transaction, Wei}
+  alias Explorer.Chain.{Address, Block, Hash, InternalTransaction, Log, Token, Transaction, Wei}
   alias Explorer.Chain.Block.Reward
   alias Explorer.Chain.PolygonEdge.Reader
   alias Explorer.Chain.Transaction.StateChange
@@ -16,8 +16,10 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
   alias Timex.Duration
 
   import BlockScoutWeb.Account.AuthController, only: [current_user: 1]
+  import Explorer.Helper, only: [decode_data: 2]
 
   @api_true [api?: true]
+  @suave_bid_event "0x83481d5b04dea534715acad673a8177a46fc93882760f36bdc16ccac439d504e"
 
   def render("message.json", assigns) do
     ApiView.render("message.json", assigns)
@@ -408,13 +410,49 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
       "has_error_in_internal_txs" => transaction.has_error_in_internal_txs
     }
 
-    if Application.get_env(:explorer, :chain_type) == "polygon_edge" && single_tx? do
-      result
-      |> Map.put("polygon_edge_deposit", polygon_edge_deposit(transaction.hash, conn))
-      |> Map.put("polygon_edge_withdrawal", polygon_edge_withdrawal(transaction.hash, conn))
-    else
-      result
+    chain_type_fields(result, transaction, single_tx?, conn)
+  end
+
+  defp chain_type_fields(result, transaction, single_tx?, conn) do
+    case single_tx? && Application.get_env(:explorer, :chain_type) do
+      "polygon_edge" ->
+        result
+        |> Map.put("polygon_edge_deposit", polygon_edge_deposit(transaction.hash, conn))
+        |> Map.put("polygon_edge_withdrawal", polygon_edge_withdrawal(transaction.hash, conn))
+
+      "suave" ->
+        Map.put(result, "allowed_peekers", suave_parse_allowed_peekers(transaction.logs))
+
+      _ -> result
     end
+  end
+
+  defp suave_parse_allowed_peekers(logs) do
+    suave_bid_contracts =
+      Application.get_all_env(:explorer)[Transaction][:suave_bid_contracts]
+      |> String.split(",")
+      |> Enum.map(fn sbc -> String.downcase(String.trim(sbc)) end)
+
+    bid_event =
+      Enum.find(logs, fn log ->
+        sanitize_log_first_topic(log.first_topic) == @suave_bid_event &&
+          Enum.member?(suave_bid_contracts, String.downcase(Hash.to_string(log.address_hash)))
+      end)
+
+    if is_nil(bid_event) do
+      []
+    else
+      [_bid_id, _decryption_condition, allowed_peekers] =
+        decode_data(bid_event.data, [{:bytes, 16}, {:uint, 64}, {:array, :address}])
+
+      Enum.map(allowed_peekers, fn peeker ->
+        "0x" <> Base.encode16(peeker, case: :lower)
+      end)
+    end
+  end
+
+  defp sanitize_log_first_topic(first_topic) do
+    if is_nil(first_topic), do: "", else: String.downcase(first_topic)
   end
 
   def token_transfers(_, _conn, false), do: nil
