@@ -68,7 +68,9 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
 
     necessity_by_association =
       if Application.get_env(:explorer, :chain_type) == "suave" do
-        Map.put(necessity_by_association_with_actions, :logs, :optional)
+        necessity_by_association_with_actions
+        |> Map.put(:logs, :optional)
+        |> Map.put([execution_node: :names], :optional)
       else
         necessity_by_association_with_actions
       end
