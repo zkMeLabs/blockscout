@@ -63,12 +63,21 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
   @api_true [api?: true]
 
   def transaction(conn, %{"transaction_hash_param" => transaction_hash_string} = params) do
+    necessity_by_association_with_actions = Map.put(@transaction_necessity_by_association, :transaction_actions, :optional)
+
+    necessity_by_association =
+      if Application.get_env(:explorer, :chain_type) == "suave" do
+        Map.put(necessity_by_association_with_actions, :logs, :optional)
+      else
+        necessity_by_association_with_actions
+      end
+
     with {:format, {:ok, transaction_hash}} <- {:format, Chain.string_to_transaction_hash(transaction_hash_string)},
          {:not_found, {:ok, transaction}} <-
            {:not_found,
             Chain.hash_to_transaction(
               transaction_hash,
-              necessity_by_association: Map.put(@transaction_necessity_by_association, :transaction_actions, :optional),
+              necessity_by_association: necessity_by_association,
               api?: true
             )},
          {:ok, false} <- AccessHelper.restricted_access?(to_string(transaction.from_address_hash), params),
