@@ -20,3 +20,5 @@ lib/indexer/fetcher/polygon_edge/deposit_execute.ex:140
 lib/indexer/fetcher/polygon_edge/deposit_execute.ex:184
 lib/indexer/fetcher/polygon_edge/withdrawal.ex:160
 lib/indexer/fetcher/polygon_edge/withdrawal.ex:204
+lib/block_scout_web/views/api/v2/transaction_view.ex:419
+lib/block_scout_web/views/api/v2/transaction_view.ex:459
