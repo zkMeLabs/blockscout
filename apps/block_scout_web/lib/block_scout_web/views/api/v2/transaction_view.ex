@@ -423,7 +423,8 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
       "suave" ->
         suave_fields(transaction, result, single_tx?, conn, watchlist_names)
 
-      _ -> result
+      _ ->
+        result
     end
   end
 
