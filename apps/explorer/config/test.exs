@@ -38,7 +38,6 @@ config :explorer, Explorer.Repo.Account,
   timeout: :timer.seconds(60),
   queue_target: 1000
 
-
 config :explorer, Explorer.Repo.PolygonEdge,
   database: "explorer_test",
   hostname: "localhost",
