@@ -5,6 +5,7 @@
 ### Features
 
 - [#8561](https://github.com/blockscout/blockscout/pull/8561) - Get historical market cap data from CoinGecko
+- [#8556](https://github.com/blockscout/blockscout/pull/8556) - Suave functional
 - [#8386](https://github.com/blockscout/blockscout/pull/8386) - Add `owner_address_hash` to the `token_instances`
 - [#8530](https://github.com/blockscout/blockscout/pull/8530) - Add `block_type` to search results
 - [#8180](https://github.com/blockscout/blockscout/pull/8180) - Deposits and Withdrawals for Polygon Edge
