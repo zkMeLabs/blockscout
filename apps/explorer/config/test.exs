@@ -48,7 +48,7 @@ config :explorer, Explorer.Repo.PolygonEdge,
   queue_target: 1000
 
 config :explorer, Explorer.Repo.Suave,
-  database: "explorer_test_suave",
+  database: "explorer_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox,
   # Default of `5_000` was too low for `BlockFetcher` test
