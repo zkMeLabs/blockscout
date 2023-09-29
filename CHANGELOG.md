@@ -4,6 +4,8 @@
 
 ### Features
 
+- [#8556](https://github.com/blockscout/blockscout/pull/8556) - Suave functional
+
 ### Fixes
 
 ### Chore
