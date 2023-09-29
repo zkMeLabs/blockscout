@@ -22,3 +22,4 @@ lib/indexer/fetcher/polygon_edge/withdrawal.ex:160
 lib/indexer/fetcher/polygon_edge/withdrawal.ex:204
 lib/block_scout_web/views/api/v2/transaction_view.ex:431
 lib/block_scout_web/views/api/v2/transaction_view.ex:472
+lib/explorer/chain/transaction.ex:164
