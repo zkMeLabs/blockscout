@@ -4,6 +4,8 @@ import Config
 |> Path.join()
 |> Code.eval_file()
 
+chain_type = System.get_env("CHAIN_TYPE") || "ethereum"
+
 ######################
 ### BlockScout Web ###
 ######################
@@ -158,7 +160,11 @@ config :ethereum_jsonrpc, EthereumJSONRPC.HTTP,
 
 config :ethereum_jsonrpc, EthereumJSONRPC.Geth,
   debug_trace_transaction_timeout: System.get_env("ETHEREUM_JSONRPC_DEBUG_TRACE_TRANSACTION_TIMEOUT", "5s"),
-  tracer: System.get_env("INDEXER_INTERNAL_TRANSACTIONS_TRACER_TYPE", "call_tracer")
+  tracer:
+    if(chain_type == "polygon_edge",
+      do: "polygon_edge",
+      else: System.get_env("INDEXER_INTERNAL_TRANSACTIONS_TRACER_TYPE", "call_tracer")
+    )
 
 config :ethereum_jsonrpc, EthereumJSONRPC.PendingTransaction,
   type: System.get_env("ETHEREUM_JSONRPC_PENDING_TRANSACTIONS_TYPE", "default")
@@ -177,6 +183,7 @@ checksum_function = System.get_env("CHECKSUM_FUNCTION")
 exchange_rates_coin = System.get_env("EXCHANGE_RATES_COIN")
 
 config :explorer,
+  chain_type: chain_type,
   coin: System.get_env("COIN") || exchange_rates_coin || "ETH",
   coin_name: System.get_env("COIN_NAME") || exchange_rates_coin || "ETH",
   allowed_solidity_evm_versions:
@@ -409,6 +416,10 @@ config :explorer, Explorer.Chain.Transaction,
   rootstock_remasc_address: System.get_env("ROOTSTOCK_REMASC_ADDRESS"),
   rootstock_bridge_address: System.get_env("ROOTSTOCK_BRIDGE_ADDRESS")
 
+config :explorer, Explorer.TokenInstanceOwnerAddressMigration,
+  concurrency: ConfigHelper.parse_integer_env_var("TOKEN_INSTANCE_OWNER_MIGRATION_CONCURRENCY", 5),
+  batch_size: ConfigHelper.parse_integer_env_var("TOKEN_INSTANCE_OWNER_MIGRATION_BATCH_SIZE", 50)
+
 ###############
 ### Indexer ###
 ###############
@@ -428,7 +439,10 @@ config :indexer,
   hide_indexing_progress_alert: ConfigHelper.parse_bool_env_var("INDEXER_HIDE_INDEXING_PROGRESS_ALERT"),
   fetcher_init_limit: ConfigHelper.parse_integer_env_var("INDEXER_FETCHER_INIT_QUERY_LIMIT", 100),
   token_balances_fetcher_init_limit:
-    ConfigHelper.parse_integer_env_var("INDEXER_TOKEN_BALANCES_FETCHER_INIT_QUERY_LIMIT", 100_000)
+    ConfigHelper.parse_integer_env_var("INDEXER_TOKEN_BALANCES_FETCHER_INIT_QUERY_LIMIT", 100_000),
+  coin_balances_fetcher_init_limit:
+    ConfigHelper.parse_integer_env_var("INDEXER_COIN_BALANCES_FETCHER_INIT_QUERY_LIMIT", 2000),
+  ipfs_gateway_url: System.get_env("IPFS_GATEWAY_URL", "https://ipfs.io/ipfs")
 
 config :indexer, Indexer.Supervisor, enabled: !ConfigHelper.parse_bool_env_var("DISABLE_INDEXER")
 
@@ -497,6 +511,9 @@ config :indexer, Indexer.Fetcher.TokenInstance.Retry.Supervisor,
 config :indexer, Indexer.Fetcher.TokenInstance.Sanitize.Supervisor,
   disabled?: ConfigHelper.parse_bool_env_var("INDEXER_DISABLE_TOKEN_INSTANCE_SANITIZE_FETCHER")
 
+config :indexer, Indexer.Fetcher.TokenInstance.LegacySanitize.Supervisor,
+  disabled?: ConfigHelper.parse_bool_env_var("INDEXER_DISABLE_TOKEN_INSTANCE_LEGACY_SANITIZE_FETCHER", "true")
+
 config :indexer, Indexer.Fetcher.EmptyBlocksSanitizer,
   batch_size: ConfigHelper.parse_integer_env_var("INDEXER_EMPTY_BLOCKS_SANITIZER_BATCH_SIZE", 100)
 
@@ -527,6 +544,10 @@ config :indexer, Indexer.Fetcher.TokenInstance.Sanitize,
   concurrency: ConfigHelper.parse_integer_env_var("INDEXER_TOKEN_INSTANCE_SANITIZE_CONCURRENCY", 10),
   batch_size: ConfigHelper.parse_integer_env_var("INDEXER_TOKEN_INSTANCE_SANITIZE_BATCH_SIZE", 10)
 
+config :indexer, Indexer.Fetcher.TokenInstance.LegacySanitize,
+  concurrency: ConfigHelper.parse_integer_env_var("INDEXER_TOKEN_INSTANCE_LEGACY_SANITIZE_CONCURRENCY", 10),
+  batch_size: ConfigHelper.parse_integer_env_var("INDEXER_TOKEN_INSTANCE_LEGACY_SANITIZE_BATCH_SIZE", 10)
+
 config :indexer, Indexer.Fetcher.InternalTransaction,
   batch_size: ConfigHelper.parse_integer_env_var("INDEXER_INTERNAL_TRANSACTIONS_BATCH_SIZE", 10),
   concurrency: ConfigHelper.parse_integer_env_var("INDEXER_INTERNAL_TRANSACTIONS_CONCURRENCY", 4),
@@ -550,6 +571,37 @@ config :indexer, Indexer.Fetcher.RootstockData,
   batch_size: ConfigHelper.parse_integer_env_var("INDEXER_ROOTSTOCK_DATA_FETCHER_BATCH_SIZE", 10),
   max_concurrency: ConfigHelper.parse_integer_env_var("INDEXER_ROOTSTOCK_DATA_FETCHER_CONCURRENCY", 5),
   db_batch_size: ConfigHelper.parse_integer_env_var("INDEXER_ROOTSTOCK_DATA_FETCHER_DB_BATCH_SIZE", 300)
+
+config :indexer, Indexer.Fetcher.PolygonEdge.Supervisor, disabled?: !(chain_type == "polygon_edge")
+
+config :indexer, Indexer.Fetcher.PolygonEdge.Deposit.Supervisor, disabled?: !(chain_type == "polygon_edge")
+
+config :indexer, Indexer.Fetcher.PolygonEdge.DepositExecute.Supervisor, disabled?: !(chain_type == "polygon_edge")
+
+config :indexer, Indexer.Fetcher.PolygonEdge.Withdrawal.Supervisor, disabled?: !(chain_type == "polygon_edge")
+
+config :indexer, Indexer.Fetcher.PolygonEdge.WithdrawalExit.Supervisor, disabled?: !(chain_type == "polygon_edge")
+
+config :indexer, Indexer.Fetcher.PolygonEdge,
+  polygon_edge_l1_rpc: System.get_env("INDEXER_POLYGON_EDGE_L1_RPC"),
+  polygon_edge_eth_get_logs_range_size:
+    ConfigHelper.parse_integer_env_var("INDEXER_POLYGON_EDGE_ETH_GET_LOGS_RANGE_SIZE", 1000)
+
+config :indexer, Indexer.Fetcher.PolygonEdge.Deposit,
+  start_block_l1: System.get_env("INDEXER_POLYGON_EDGE_L1_DEPOSITS_START_BLOCK"),
+  state_sender: System.get_env("INDEXER_POLYGON_EDGE_L1_STATE_SENDER_CONTRACT")
+
+config :indexer, Indexer.Fetcher.PolygonEdge.DepositExecute,
+  start_block_l2: System.get_env("INDEXER_POLYGON_EDGE_L2_DEPOSITS_START_BLOCK"),
+  state_receiver: System.get_env("INDEXER_POLYGON_EDGE_L2_STATE_RECEIVER_CONTRACT")
+
+config :indexer, Indexer.Fetcher.PolygonEdge.Withdrawal,
+  start_block_l2: System.get_env("INDEXER_POLYGON_EDGE_L2_WITHDRAWALS_START_BLOCK"),
+  state_sender: System.get_env("INDEXER_POLYGON_EDGE_L2_STATE_SENDER_CONTRACT")
+
+config :indexer, Indexer.Fetcher.PolygonEdge.WithdrawalExit,
+  start_block_l1: System.get_env("INDEXER_POLYGON_EDGE_L1_WITHDRAWALS_START_BLOCK"),
+  exit_helper: System.get_env("INDEXER_POLYGON_EDGE_L1_EXIT_HELPER_CONTRACT")
 
 Code.require_file("#{config_env()}.exs", "config/runtime")
 
