@@ -22,8 +22,10 @@ defmodule Explorer.ReleaseTasks do
 
     repos_list =
       case System.get_env("CHAIN_TYPE") do
-        "polygon_edge" -> [Explorer.Repo.PolygonEdge | base_repos_list]
-        "suave" -> [Explorer.Repo.Suave | base_repos_list]
+        # credo:disable-for-next-line
+        "polygon_edge" -> base_repos_list ++ [Explorer.Repo.PolygonEdge]
+        # credo:disable-for-next-line
+        "suave" -> base_repos_list ++ [Explorer.Repo.Suave]
         _ -> base_repos_list
       end
 
