@@ -6,6 +6,7 @@ defmodule Explorer.Helper do
   alias ABI.TypeDecoder
   alias Explorer.Chain.Data
 
+  @spec decode_data(binary() | map(), list()) :: list() | nil
   def decode_data("0x", types) do
     for _ <- types, do: nil
   end
@@ -25,6 +26,9 @@ defmodule Explorer.Helper do
     |> Base.decode16!(case: :mixed)
     |> TypeDecoder.decode_raw(types)
   end
+
+  @spec parse_integer(binary() | nil) :: integer() | nil
+  def parse_integer(nil), do: nil
 
   def parse_integer(integer_string) when is_binary(integer_string) do
     case Integer.parse(integer_string) do
