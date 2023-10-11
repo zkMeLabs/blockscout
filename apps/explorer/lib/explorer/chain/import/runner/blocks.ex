@@ -13,7 +13,7 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
     Address,
     Block,
     Import,
-    PendingBlockOperation,
+    # PendingBlockOperation,
     Token,
     Token.Instance,
     TokenTransfer,
@@ -62,11 +62,11 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
 
     minimal_block_height = trace_minimal_block_height()
 
-    items_for_pending_ops =
-      changes_list
-      |> filter_by_min_height(&(&1.number >= minimal_block_height))
-      |> Enum.filter(& &1.consensus)
-      |> Enum.map(&{&1.number, &1.hash})
+    # items_for_pending_ops =
+    #   changes_list
+    #   |> filter_by_min_height(&(&1.number >= minimal_block_height))
+    #   |> Enum.filter(& &1.consensus)
+    #   |> Enum.map(&{&1.number, &1.hash})
 
     consensus_block_numbers = consensus_block_numbers(changes_list)
 
@@ -97,16 +97,16 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
         :blocks
       )
     end)
-    |> Multi.run(:new_pending_operations, fn repo, %{lose_consensus: nonconsensus_items} ->
-      Instrumenter.block_import_stage_runner(
-        fn ->
-          new_pending_operations(repo, nonconsensus_items, items_for_pending_ops, insert_options)
-        end,
-        :address_referencing,
-        :blocks,
-        :new_pending_operations
-      )
-    end)
+    # |> Multi.run(:new_pending_operations, fn repo, %{lose_consensus: nonconsensus_items} ->
+    #   Instrumenter.block_import_stage_runner(
+    #     fn ->
+    #       new_pending_operations(repo, nonconsensus_items, items_for_pending_ops, insert_options)
+    #     end,
+    #     :address_referencing,
+    #     :blocks,
+    #     :new_pending_operations
+    #   )
+    # end)
     |> Multi.run(:uncle_fetched_block_second_degree_relations, fn repo, _ ->
       Instrumenter.block_import_stage_runner(
         fn ->
@@ -418,30 +418,30 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
     EthereumJSONRPC.first_block_to_fetch(:trace_first_block)
   end
 
-  defp new_pending_operations(repo, nonconsensus_items, items, %{
-         timeout: timeout,
-         timestamps: timestamps
-       }) do
-    sorted_pending_ops =
-      items
-      |> MapSet.new()
-      |> MapSet.difference(MapSet.new(nonconsensus_items))
-      |> Enum.sort()
-      |> Enum.map(fn {number, hash} ->
-        %{block_hash: hash, block_number: number}
-      end)
+  # defp new_pending_operations(repo, nonconsensus_items, items, %{
+  #        timeout: timeout,
+  #        timestamps: timestamps
+  #      }) do
+  #   sorted_pending_ops =
+  #     items
+  #     |> MapSet.new()
+  #     |> MapSet.difference(MapSet.new(nonconsensus_items))
+  #     |> Enum.sort()
+  #     |> Enum.map(fn {number, hash} ->
+  #       %{block_hash: hash, block_number: number}
+  #     end)
 
-    Import.insert_changes_list(
-      repo,
-      sorted_pending_ops,
-      conflict_target: :block_hash,
-      on_conflict: :nothing,
-      for: PendingBlockOperation,
-      returning: true,
-      timeout: timeout,
-      timestamps: timestamps
-    )
-  end
+  #   Import.insert_changes_list(
+  #     repo,
+  #     sorted_pending_ops,
+  #     conflict_target: :block_hash,
+  #     on_conflict: :nothing,
+  #     for: PendingBlockOperation,
+  #     returning: true,
+  #     timeout: timeout,
+  #     timestamps: timestamps
+  #   )
+  # end
 
   defp delete_address_token_balances(_, [], _), do: {:ok, []}
 
