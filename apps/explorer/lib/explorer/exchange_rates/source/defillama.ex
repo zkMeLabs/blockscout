@@ -31,17 +31,6 @@ defmodule Explorer.ExchangeRates.Source.DefiLlama do
     []
   end
 
-  @doc """
-  Converts date time string into DateTime object formatted as date
-  """
-  @spec date(String.t()) :: Date.t()
-  def date(date_time_string) do
-    with {:ok, datetime, _} <- DateTime.from_iso8601(date_time_string) do
-      datetime
-      |> DateTime.to_date()
-    end
-  end
-
   defp base_url do
     base_free_url()
   end
