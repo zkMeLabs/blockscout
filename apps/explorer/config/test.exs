@@ -1,5 +1,8 @@
 import Config
 
+# Lower hashing rounds for faster tests
+config :bcrypt_elixir, log_rounds: 4
+
 # Configure your database
 config :explorer, Explorer.Repo,
   database: "explorer_test",
