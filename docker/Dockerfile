@@ -1,10 +1,12 @@
-FROM bitwalker/alpine-elixir-phoenix:1.14 AS builder
+FROM hexpm/elixir:1.14.5-erlang-25.3.2.7-ubuntu-bionic-20230126 AS builder
 
 WORKDIR /app
 
 ENV MIX_ENV="prod"
 
-RUN apk --no-cache --update add alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3 file libstdc++ curl ca-certificates
+RUN apt-get update
+RUN apt-get install -y git
+RUN apt-get install -y curl
 
 ARG CACHE_EXCHANGE_RATES_PERIOD
 ARG API_V1_READ_METHODS_DISABLED
@@ -37,10 +39,14 @@ ADD config ./config
 ADD rel ./rel
 ADD *.exs ./
 
-RUN apk add --update nodejs npm
+RUN mix compile
+
+RUN apt update
+RUN apt upgrade -y
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+RUN apt install -y nodejs
 
 # Run forderground build and phoenix digest
-RUN mix compile && npm install npm@latest
 
 # Add blockscout npm deps
 RUN cd apps/block_scout_web/assets/ && \
@@ -49,7 +55,10 @@ RUN cd apps/block_scout_web/assets/ && \
     cd /app/apps/explorer/ && \
     npm install
 
-RUN export "CFLAGS=-I/usr/local/include -L/usr/local/lib" && cd deps/ex_secp256k1 && mix deps.get && mix compile
+
+RUN apt-get -y install git make 
+
+#RUN export "CFLAGS=-I/usr/local/include -L/usr/local/lib" && cd deps/libsecp256k1 && mix deps.get && mix compile
 RUN mix phx.digest
 
 RUN mkdir -p /opt/release \
@@ -57,16 +66,15 @@ RUN mkdir -p /opt/release \
   && mv _build/${MIX_ENV}/rel/blockscout /opt/release
 
 ##############################################################
-FROM bitwalker/alpine-elixir-phoenix:1.14
+FROM hexpm/elixir:1.14.5-erlang-25.3.2.7-ubuntu-bionic-20230126
 
 ARG RELEASE_VERSION
 ENV RELEASE_VERSION=${RELEASE_VERSION}
-ARG CHAIN_TYPE
-ENV CHAIN_TYPE=${CHAIN_TYPE}
 ARG BLOCKSCOUT_VERSION
 ENV BLOCKSCOUT_VERSION=${BLOCKSCOUT_VERSION}
 
-RUN apk --no-cache --update add jq curl
+RUN apt-get update
+RUN apt-get install -y jq curl
 
 WORKDIR /app
 
