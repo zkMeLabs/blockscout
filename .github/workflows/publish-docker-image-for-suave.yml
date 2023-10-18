@@ -47,10 +47,10 @@ jobs:
           context: .
           file: ./docker/Dockerfile
           push: true
-          tags: blockscout/blockscout-${{ env.DOCKER_CHAIN_NAME }}:compat
+          tags: blockscout/blockscout-${{ env.DOCKER_CHAIN_NAME }}:compat-alpine
           platforms: |
-            linux/arm64
             linux/amd64
+            linux/arm64/v8
           build-args: |
             CACHE_EXCHANGE_RATES_PERIOD=
             API_V1_READ_METHODS_DISABLED=false
