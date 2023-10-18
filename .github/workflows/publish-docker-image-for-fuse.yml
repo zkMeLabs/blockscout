@@ -8,14 +8,14 @@ name: Publish Docker image for specific chain branches
 on:
   push:
     branches:
-      - production-xdai-stg
+      - production-fuse-stg
 jobs:
   push_to_registry:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     env:
       RELEASE_VERSION: 5.2.3
-      DOCKER_CHAIN_NAME: xdai
+      DOCKER_CHAIN_NAME: fuse
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -56,8 +56,5 @@ jobs:
             CACHE_TOTAL_GAS_USAGE_COUNTER_ENABLED=
             ADMIN_PANEL_ENABLED=false
             CACHE_ADDRESS_WITH_BALANCES_UPDATE_INTERVAL=
-            DISABLE_BRIDGE_MARKET_CAP_UPDATER=false
-            CACHE_BRIDGE_MARKET_CAP_UPDATE_INTERVAL=
-            SENTRY_DSN_CLIENT_GNOSIS=${{ secrets.SENTRY_DSN_CLIENT_GNOSIS }}
             BLOCKSCOUT_VERSION=v${{ env.RELEASE_VERSION }}-beta.+commit.${{ env.SHORT_SHA }}
             RELEASE_VERSION=${{ env.RELEASE_VERSION }}
