@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       RELEASE_VERSION: 5.2.3
-      DOCKER_CHAIN_NAME: suave
+      DOCKER_CHAIN_NAME: stability
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -48,9 +48,6 @@ jobs:
           file: ./docker/Dockerfile
           push: true
           tags: blockscout/blockscout-${{ env.DOCKER_CHAIN_NAME }}:latest, blockscout/blockscout-${{ env.DOCKER_CHAIN_NAME }}:${{ env.RELEASE_VERSION }}-postrelease-${{ env.SHORT_SHA }}-debug
-          platforms: |
-            linux/amd64
-            linux/arm64/v8
           build-args: |
             CACHE_EXCHANGE_RATES_PERIOD=
             API_V1_READ_METHODS_DISABLED=false
