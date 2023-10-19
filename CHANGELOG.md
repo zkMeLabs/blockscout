@@ -4,6 +4,7 @@
 
 ### Features
 
+- [#8651](https://github.com/blockscout/blockscout/pull/8651) - Add `stability_fee` for CHAIN_TYPE=stability
 - [#8472](https://github.com/blockscout/blockscout/pull/8472) - Integrate `/api/v2/bytecodes/sources:search-all` of `eth_bytecode_db`
 - [#8589](https://github.com/blockscout/blockscout/pull/8589) - DefiLlama TVL source
 - [#8544](https://github.com/blockscout/blockscout/pull/8544) - Fix `nil` `"structLogs"`
