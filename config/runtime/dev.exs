@@ -83,6 +83,13 @@ config :explorer, Explorer.Repo.PolygonZkevm,
   url: System.get_env("DATABASE_URL"),
   pool_size: ConfigHelper.parse_integer_env_var("POLYGON_ZKEVM_POOL_SIZE", 10)
 
+# Configure Rootstock database
+config :explorer, Explorer.Repo.RSK,
+  database: database,
+  hostname: hostname,
+  url: System.get_env("DATABASE_URL"),
+  pool_size: pool_size
+
 variant = Variant.get()
 
 Code.require_file("#{variant}.exs", "apps/explorer/config/dev")
