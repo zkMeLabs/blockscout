@@ -36,7 +36,7 @@ defmodule ConfigHelper do
     |> :timer.seconds()
   end
 
-  @spec parse_integer_env_var(String.t(), String.t()) :: non_neg_integer()
+  @spec parse_integer_env_var(String.t(), integer()) :: non_neg_integer()
   def parse_integer_env_var(env_var, default_value) do
     env_var
     |> safe_get_env(to_string(default_value))
@@ -44,6 +44,17 @@ defmodule ConfigHelper do
     |> case do
       {integer, _} -> integer
       _ -> 0
+    end
+  end
+
+  @spec parse_integer_or_nil_env_var(String.t()) :: non_neg_integer() | nil
+  def parse_integer_or_nil_env_var(env_var) do
+    env_var
+    |> System.get_env("")
+    |> Integer.parse()
+    |> case do
+      {integer, _} -> integer
+      _ -> nil
     end
   end
 
