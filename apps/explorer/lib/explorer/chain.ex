@@ -83,7 +83,6 @@ defmodule Explorer.Chain do
   }
 
   alias Explorer.Chain.Cache.Block, as: BlockCache
-  alias Explorer.Chain.Cache.Helper, as: CacheHelper
   alias Explorer.Chain.Cache.PendingBlockOperation, as: PendingBlockOperationCache
   alias Explorer.Chain.Fetcher.{CheckBytecodeMatchingOnDemand, LookUpSmartContractSourcesOnDemand}
   alias Explorer.Chain.Import.Runner
@@ -6399,18 +6398,6 @@ defmodule Explorer.Chain do
           )
       }
     )
-  end
-
-  def get_table_rows_total_count(module, options) do
-    table_name = module.__schema__(:source)
-
-    count = CacheHelper.estimated_count_from(table_name, options)
-
-    if is_nil(count) or count < 0 do
-      select_repo(options).aggregate(module, :count, timeout: :infinity)
-    else
-      count
-    end
   end
 
   @spec verified_contracts_top(non_neg_integer()) :: [Hash.Address.t()]
