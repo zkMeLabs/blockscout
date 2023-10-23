@@ -209,8 +209,8 @@ defmodule Explorer.Repo do
       adapter: Ecto.Adapters.Postgres
 
     def init(_, opts) do
-      db_url = Application.get_env(:explorer, Explorer.Repo.PolygonZkevm)[:url]
-      repo_conf = Application.get_env(:explorer, Explorer.Repo.PolygonZkevm)
+      db_url = Application.get_env(:explorer, __MODULE__)[:url]
+      repo_conf = Application.get_env(:explorer, __MODULE__)
 
       merged =
         %{url: db_url}
@@ -221,7 +221,9 @@ defmodule Explorer.Repo do
           _, _, v2 -> v2
         end)
 
-      Application.put_env(:explorer, Explorer.Repo.PolygonZkevm, merged)
+      Application.put_env(:explorer, __MODULE__, merged)
+
+      {:ok, Keyword.put(opts, :url, db_url)}
     end
   end
 
