@@ -22,14 +22,12 @@ defmodule Explorer.ReleaseTasks do
 
     repos_list =
       case System.get_env("CHAIN_TYPE") do
-        # credo:disable-for-next-line
-        "polygon_edge" -> base_repos_list ++ [Explorer.Repo.PolygonEdge]
-        # credo:disable-for-next-line
-        "suave" -> base_repos_list ++ [Explorer.Repo.Suave]
+        "polygon_edge" -> [Explorer.Repo.PolygonEdge | base_repos_list]
+        "suave" -> [Explorer.Repo.Suave | base_repos_list]
         _ -> base_repos_list
       end
 
-    Application.get_env(:blockscout, :ecto_repos, repos_list)
+    Application.get_env(:explorer, :ecto_repos, repos_list)
   end
 
   def create_and_migrate do

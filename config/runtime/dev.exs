@@ -76,10 +76,17 @@ config :explorer, Explorer.Repo.PolygonEdge,
   url: System.get_env("DATABASE_URL"),
   pool_size: ConfigHelper.parse_integer_env_var("POLYGON_EDGE_POOL_SIZE", 10)
 
+# Configure Rootstock database
+config :explorer, Explorer.Repo.RSK,
+  database: database,
+  hostname: hostname,
+  url: System.get_env("DATABASE_URL"),
+  pool_size: pool_size
+
 # Configure Suave database
 config :explorer, Explorer.Repo.Suave,
-  database: database_account,
-  hostname: hostname_account,
+  database: database,
+  hostname: hostname,
   url: ExplorerConfigHelper.get_suave_db_url(),
   pool_size: ConfigHelper.parse_integer_env_var("SUAVE_POOL_SIZE", 10)
 
