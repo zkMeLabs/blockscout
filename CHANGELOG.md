@@ -4,8 +4,11 @@
 
 ### Features
 
+- [#8673](https://github.com/blockscout/blockscout/pull/8673) - Add a window for balances fetching from non-archive node
+
 ### Fixes
 
+- [#8678](https://github.com/blockscout/blockscout/pull/8678) - Fix `is_verified` for `/addresses` and `/smart-contracts`
 - [#8685](https://github.com/blockscout/blockscout/pull/8685) - Fix db pool size exceeds Postgres max connections
 
 ### Chore
