@@ -6,7 +6,11 @@
 
 ### Fixes
 
+- [#8724](https://github.com/blockscout/blockscout/pull/8724) - Fix flaky account notifier test
+
 ### Chore
+
+- [#8728](https://github.com/blockscout/blockscout/pull/8728) - Remove repos_list (default value for ecto repos) from Explorer.ReleaseTasks
 
 <details>
   <summary>Dependencies version bumps</summary>
