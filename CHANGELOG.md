@@ -4,6 +4,8 @@
 
 ### Features
 
+- [#8997](https://github.com/blockscout/blockscout/pull/8997) - Isolate throttable error count by request method
+
 ### Fixes
 
 ### Chore
