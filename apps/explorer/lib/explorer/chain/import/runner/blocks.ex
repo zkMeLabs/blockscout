@@ -9,6 +9,8 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
 
   alias Ecto.{Changeset, Multi, Repo}
 
+  alias EthereumJSONRPC.Utility.RangesHelper
+
   alias Explorer.Chain.{
     Address,
     Block,
@@ -63,7 +65,7 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
 
     items_for_pending_ops =
       changes_list
-      |> filter_by_height_range(&is_block_in_range?(&1.number))
+      |> filter_by_height_range(&RangesHelper.traceable_block_number?(&1.number))
       |> Enum.filter(& &1.consensus)
       |> Enum.map(&{&1.number, &1.hash})
 
@@ -73,7 +75,8 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
     run_func = fn repo ->
       {:ok, nonconsensus_items} = lose_consensus(repo, hashes, consensus_block_numbers, changes_list, insert_options)
 
-      {:ok, filter_by_height_range(nonconsensus_items, fn {number, _hash} -> is_block_in_range?(number) end)}
+      {:ok,
+       filter_by_height_range(nonconsensus_items, fn {number, _hash} -> RangesHelper.traceable_block_number?(number) end)}
     end
 
     multi
@@ -214,12 +217,6 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
 
   @impl Runner
   def timeout, do: @timeout
-
-  defp is_block_in_range?(number) do
-    minimal_block_height = Application.get_env(:indexer, :trace_first_block)
-    maximal_block_height = Application.get_env(:indexer, :trace_last_block)
-    number >= minimal_block_height && if(maximal_block_height, do: number <= maximal_block_height, else: true)
-  end
 
   defp fork_transactions(%{
          repo: repo,
@@ -894,10 +891,7 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
   end
 
   defp filter_by_height_range(blocks, filter_func) do
-    minimal_block_height = Application.get_env(:indexer, :trace_first_block)
-    maximal_block_height = Application.get_env(:indexer, :trace_last_block)
-
-    if minimal_block_height > 0 || maximal_block_height do
+    if RangesHelper.trace_ranges_present?() do
       Enum.filter(blocks, &filter_func.(&1))
     else
       blocks
