@@ -4,10 +4,14 @@
 
 ### Features
 
+- [#9112](https://github.com/blockscout/blockscout/pull/9112) - Add specific url for eth_call
+- [#9044](https://github.com/blockscout/blockscout/pull/9044) - Expand gas price oracle functionality
+
 ### Fixes
 
 - [#9062](https://github.com/blockscout/blockscout/pull/9062) - Fix blockscout-ens integration
 - [#9061](https://github.com/blockscout/blockscout/pull/9061) - Arbitrum allow tx receipt gasUsedForL1 field
+- [#8812](https://github.com/blockscout/blockscout/pull/8812) - Update existing tokens type if got transfer with higher type priority
 
 ### Chore
 
@@ -40,6 +44,7 @@
 
 ### Chore
 
+- [#9094](https://github.com/blockscout/blockscout/pull/9094) - Improve exchange rates logging
 - [#9014](https://github.com/blockscout/blockscout/pull/9014) - Decrease amount of NFT in address collection: 15 -> 9
 - [#8994](https://github.com/blockscout/blockscout/pull/8994) - Refactor transactions event preloads
 - [#8991](https://github.com/blockscout/blockscout/pull/8991) - Manage DB queue target via runtime env var
