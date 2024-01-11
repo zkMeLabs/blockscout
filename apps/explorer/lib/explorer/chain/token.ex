@@ -171,6 +171,14 @@ defmodule Explorer.Chain.Token do
     from(token in __MODULE__, where: token.contract_address_hash in ^contract_address_hashes)
   end
 
+  def base_token_query(type, sorting) do
+    query = from(t in Token, preload: [:contract_address])
+
+    query |> apply_filter(type) |> SortingHelper.apply_sorting(sorting, @default_sorting)
+  end
+
+  def default_sorting, do: @default_sorting
+
   @doc """
   Lists the top `t:__MODULE__.t/0`'s'.
   """

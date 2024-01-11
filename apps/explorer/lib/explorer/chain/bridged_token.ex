@@ -17,7 +17,7 @@ defmodule Explorer.Chain.BridgedToken do
   alias ABI.{TypeDecoder, TypeEncoder}
   alias Ecto.Changeset
   alias EthereumJSONRPC.Contract
-  alias Explorer.{Chain, PagingOptions, Repo}
+  alias Explorer.{Chain, PagingOptions, Repo, SortingHelper}
 
   alias Explorer.Chain.{
     Address,
@@ -968,7 +968,7 @@ defmodule Explorer.Chain.BridgedToken do
 
     base_query_with_paging =
       base_query
-      |> Token.page_tokens(paging_options)
+      |> SortingHelper.page_with_sorting(paging_options, sorting, Token.default_sorting())
       |> limit(^paging_options.page_size)
 
     query =
