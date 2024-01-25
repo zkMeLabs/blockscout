@@ -8,7 +8,7 @@ on:
         required: true
 
 env:
-  OTP_VERSION: '25.2.1'
+  OTP_VERSION: '25.3.2.8'
   ELIXIR_VERSION: '1.14.5'
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     env:
-      RELEASE_VERSION: 5.3.3
+      RELEASE_VERSION: 6.0.0
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -61,5 +61,5 @@ jobs:
             AMPLITUDE_URL=
             AMPLITUDE_API_KEY=
             CACHE_ADDRESS_WITH_BALANCES_UPDATE_INTERVAL=
-            BLOCKSCOUT_VERSION=v${{ env.RELEASE_VERSION }}-beta
+            BLOCKSCOUT_VERSION=v${{ env.RELEASE_VERSION }}-alpha
             RELEASE_VERSION=${{ env.RELEASE_VERSION }}

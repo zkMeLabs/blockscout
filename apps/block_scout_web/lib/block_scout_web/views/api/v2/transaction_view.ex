@@ -208,12 +208,15 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
   end
 
   def decode_transactions(transactions, skip_sig_provider?) do
-    Enum.reduce(transactions, {[], %{}, %{}}, fn transaction, {results, abi_acc, methods_acc} ->
-      {result, abi_acc, methods_acc} =
-        Transaction.decoded_input_data(transaction, skip_sig_provider?, @api_true, abi_acc, methods_acc)
+    {results, abi_acc, methods_acc} =
+      Enum.reduce(transactions, {[], %{}, %{}}, fn transaction, {results, abi_acc, methods_acc} ->
+        {result, abi_acc, methods_acc} =
+          Transaction.decoded_input_data(transaction, skip_sig_provider?, @api_true, abi_acc, methods_acc)
 
-      {Enum.reverse([format_decoded_input(result) | Enum.reverse(results)]), abi_acc, methods_acc}
-    end)
+        {[format_decoded_input(result) | results], abi_acc, methods_acc}
+      end)
+
+    {Enum.reverse(results), abi_acc, methods_acc}
   end
 
   def prepare_token_transfer(token_transfer, _conn, decoded_input) do
@@ -243,16 +246,25 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
     }
   end
 
+  # credo:disable-for-next-line /Complexity/
   def prepare_token_transfer_total(token_transfer) do
     case TokensHelper.token_transfer_amount_for_api(token_transfer) do
       {:ok, :erc721_instance} ->
-        %{"token_id" => List.first(token_transfer.token_ids)}
+        %{"token_id" => token_transfer.token_ids && List.first(token_transfer.token_ids)}
 
       {:ok, :erc1155_instance, value, decimals} ->
-        %{"token_id" => List.first(token_transfer.token_ids), "value" => value, "decimals" => decimals}
+        %{
+          "token_id" => token_transfer.token_ids && List.first(token_transfer.token_ids),
+          "value" => value,
+          "decimals" => decimals
+        }
 
       {:ok, :erc1155_instance, values, token_ids, decimals} ->
-        %{"token_id" => List.first(token_ids), "value" => List.first(values), "decimals" => decimals}
+        %{
+          "token_id" => token_ids && List.first(token_ids),
+          "value" => values && List.first(values),
+          "decimals" => decimals
+        }
 
       {:ok, value, decimals} ->
         %{"value" => value, "decimals" => decimals}
@@ -372,7 +384,7 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
       "result" => status,
       "status" => transaction.status,
       "block" => transaction.block_number,
-      "timestamp" => block_timestamp(transaction.block),
+      "timestamp" => block_timestamp(transaction),
       "from" =>
         Helper.address_with_info(
           single_tx? && conn,
@@ -558,7 +570,18 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
   end
 
   defp sanitize_log_first_topic(first_topic) do
-    if is_nil(first_topic), do: "", else: String.downcase(first_topic)
+    if is_nil(first_topic) do
+      ""
+    else
+      sanitized =
+        if is_binary(first_topic) do
+          first_topic
+        else
+          Hash.to_string(first_topic)
+        end
+
+      String.downcase(sanitized)
+    end
   end
 
   def token_transfers(_, _conn, false), do: nil
@@ -653,10 +676,11 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
   defp format_status({:error, reason}), do: reason
   defp format_status(status), do: status
 
-  defp format_decoded_input({:error, _, []}), do: nil
-  defp format_decoded_input({:error, _, candidates}), do: Enum.at(candidates, 0)
-  defp format_decoded_input({:ok, _identifier, _text, _mapping} = decoded), do: decoded
-  defp format_decoded_input(_), do: nil
+  @spec format_decoded_input(any()) :: nil | map() | tuple()
+  def format_decoded_input({:error, _, []}), do: nil
+  def format_decoded_input({:error, _, candidates}), do: Enum.at(candidates, 0)
+  def format_decoded_input({:ok, _identifier, _text, _mapping} = decoded), do: decoded
+  def format_decoded_input(_), do: nil
 
   defp format_decoded_log_input({:error, :could_not_decode}), do: nil
   defp format_decoded_log_input({:ok, _method_id, _text, _mapping} = decoded), do: decoded
@@ -721,7 +745,7 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
         _,
         skip_sc_check?
       ) do
-    if skip_sc_check? || Address.is_smart_contract(to_address) do
+    if skip_sc_check? || Address.smart_contract?(to_address) do
       "0x" <> Base.encode16(method_id, case: :lower)
     else
       nil
@@ -790,7 +814,7 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
 
   def tx_types(%Transaction{to_address: to_address} = tx, types, :contract_call) do
     types =
-      if Address.is_smart_contract(to_address) do
+      if Address.smart_contract?(to_address) do
         [:contract_call | types]
       else
         types
@@ -812,7 +836,7 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
 
   def tx_types(tx, types, :rootstock_remasc) do
     types =
-      if Transaction.is_rootstock_remasc_transaction(tx) do
+      if Transaction.rootstock_remasc_transaction?(tx) do
         [:rootstock_remasc | types]
       else
         types
@@ -822,13 +846,14 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
   end
 
   def tx_types(tx, types, :rootstock_bridge) do
-    if Transaction.is_rootstock_bridge_transaction(tx) do
+    if Transaction.rootstock_bridge_transaction?(tx) do
       [:rootstock_bridge | types]
     else
       types
     end
   end
 
+  defp block_timestamp(%Transaction{block_timestamp: block_ts}) when not is_nil(block_ts), do: block_ts
   defp block_timestamp(%Transaction{block: %Block{} = block}), do: block.timestamp
   defp block_timestamp(%Block{} = block), do: block.timestamp
   defp block_timestamp(_), do: nil

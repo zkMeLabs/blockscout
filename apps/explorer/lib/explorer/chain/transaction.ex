@@ -17,6 +17,7 @@ defmodule Explorer.Chain.Transaction do
     Block,
     ContractMethod,
     Data,
+    DenormalizationHelper,
     Gas,
     Hash,
     InternalTransaction,
@@ -36,7 +37,7 @@ defmodule Explorer.Chain.Transaction do
   alias Explorer.{PagingOptions, SortingHelper}
   alias Explorer.SmartContract.SigProviderInterface
 
-  @optional_attrs ~w(max_priority_fee_per_gas max_fee_per_gas block_hash block_number created_contract_address_hash cumulative_gas_used earliest_processing_start
+  @optional_attrs ~w(max_priority_fee_per_gas max_fee_per_gas block_hash block_number block_consensus block_timestamp created_contract_address_hash cumulative_gas_used earliest_processing_start
                      error gas_price gas_used index created_contract_code_indexed_at status to_address_hash revert_reason type has_error_in_internal_txs)a
 
   @suave_optional_attrs ~w(execution_node_hash wrapped_type wrapped_nonce wrapped_to_address_hash wrapped_gas wrapped_gas_price wrapped_max_priority_fee_per_gas wrapped_max_fee_per_gas wrapped_value wrapped_input wrapped_v wrapped_r wrapped_s wrapped_hash)a
@@ -91,6 +92,8 @@ defmodule Explorer.Chain.Transaction do
      `uncles` in one of the `forks`.
    * `block_number` - Denormalized `block` `number`. `nil` when transaction is pending or has only been collated into
      one of the `uncles` in one of the `forks`.
+   * `block_consensus` - consensus of the block where transaction collated.
+   * `block_timestamp` - timestamp of the block where transaction collated.
    * `created_contract_address` - belongs_to association to `address` corresponding to `created_contract_address_hash`.
    * `created_contract_address_hash` - Denormalized `internal_transaction` `created_contract_address_hash`
      populated only when `to_address_hash` is nil.
@@ -169,6 +172,8 @@ defmodule Explorer.Chain.Transaction do
               block: %Ecto.Association.NotLoaded{} | Block.t() | nil,
               block_hash: Hash.t() | nil,
               block_number: Block.block_number() | nil,
+              block_consensus: boolean(),
+              block_timestamp: DateTime.t() | nil,
               created_contract_address: %Ecto.Association.NotLoaded{} | Address.t() | nil,
               created_contract_address_hash: Hash.Address.t() | nil,
               created_contract_code_indexed_at: DateTime.t() | nil,
@@ -232,6 +237,7 @@ defmodule Explorer.Chain.Transaction do
   @derive {Poison.Encoder,
            only: [
              :block_number,
+             :block_timestamp,
              :cumulative_gas_used,
              :error,
              :gas,
@@ -252,6 +258,7 @@ defmodule Explorer.Chain.Transaction do
   @derive {Jason.Encoder,
            only: [
              :block_number,
+             :block_timestamp,
              :cumulative_gas_used,
              :error,
              :gas,
@@ -272,6 +279,8 @@ defmodule Explorer.Chain.Transaction do
   @primary_key {:hash, Hash.Full, autogenerate: false}
   schema "transactions" do
     field(:block_number, :integer)
+    field(:block_consensus, :boolean)
+    field(:block_timestamp, :utc_datetime_usec)
     field(:cumulative_gas_used, :decimal)
     field(:earliest_processing_start, :utc_datetime_usec)
     field(:error, :string)
@@ -544,6 +553,11 @@ defmodule Explorer.Chain.Transaction do
     |> unique_constraint(:hash)
   end
 
+  @spec block_timestamp(t()) :: DateTime.t()
+  def block_timestamp(%{block_number: nil, inserted_at: time}), do: time
+  def block_timestamp(%{block_timestamp: time}) when not is_nil(time), do: time
+  def block_timestamp(%{block: %{timestamp: time}}), do: time
+
   def preload_token_transfers(query, address_hash) do
     token_transfers_query =
       from(
@@ -594,6 +608,18 @@ defmodule Explorer.Chain.Transaction do
   end
 
   # Because there is no contract association, we know the contract was not verified
+  @spec decoded_input_data(
+          NotLoaded.t() | Transaction.t(),
+          boolean(),
+          [Chain.api?()],
+          full_abi_acc,
+          methods_acc
+        ) ::
+          {error_type | success_type, full_abi_acc, methods_acc}
+        when full_abi_acc: map(),
+             methods_acc: map(),
+             error_type: {:error, any()} | {:error, :contract_not_verified | :contract_verified, list()},
+             success_type: {:ok | binary(), any()} | {:ok, binary(), binary(), list()}
   def decoded_input_data(tx, skip_sig_provider? \\ false, options, full_abi_acc \\ %{}, methods_acc \\ %{})
 
   def decoded_input_data(%__MODULE__{to_address: nil}, _, _, full_abi_acc, methods_acc),
@@ -1007,11 +1033,12 @@ defmodule Explorer.Chain.Transaction do
   """
   def transactions_with_token_transfers(address_hash, token_hash) do
     query = transactions_with_token_transfers_query(address_hash, token_hash)
+    preloads = DenormalizationHelper.extend_block_preload([:from_address, :to_address, :created_contract_address])
 
     from(
       t in subquery(query),
       order_by: [desc: t.block_number, desc: t.index],
-      preload: [:from_address, :to_address, :created_contract_address, :block]
+      preload: ^preloads
     )
   end
 
@@ -1028,11 +1055,12 @@ defmodule Explorer.Chain.Transaction do
 
   def transactions_with_token_transfers_direction(direction, address_hash) do
     query = transactions_with_token_transfers_query_direction(direction, address_hash)
+    preloads = DenormalizationHelper.extend_block_preload([:from_address, :to_address, :created_contract_address])
 
     from(
       t in subquery(query),
       order_by: [desc: t.block_number, desc: t.index],
-      preload: [:from_address, :to_address, :created_contract_address, :block]
+      preload: ^preloads
     )
   end
 
@@ -1096,8 +1124,8 @@ defmodule Explorer.Chain.Transaction do
   @doc """
   Returns true if the transaction is a Rootstock REMASC transaction.
   """
-  @spec is_rootstock_remasc_transaction(Explorer.Chain.Transaction.t()) :: boolean
-  def is_rootstock_remasc_transaction(%__MODULE__{to_address_hash: to_address_hash}) do
+  @spec rootstock_remasc_transaction?(Explorer.Chain.Transaction.t()) :: boolean
+  def rootstock_remasc_transaction?(%__MODULE__{to_address_hash: to_address_hash}) do
     case Hash.Address.cast(Application.get_env(:explorer, __MODULE__)[:rootstock_remasc_address]) do
       {:ok, address} -> address == to_address_hash
       _ -> false
@@ -1107,8 +1135,8 @@ defmodule Explorer.Chain.Transaction do
   @doc """
   Returns true if the transaction is a Rootstock bridge transaction.
   """
-  @spec is_rootstock_bridge_transaction(Explorer.Chain.Transaction.t()) :: boolean
-  def is_rootstock_bridge_transaction(%__MODULE__{to_address_hash: to_address_hash}) do
+  @spec rootstock_bridge_transaction?(Explorer.Chain.Transaction.t()) :: boolean
+  def rootstock_bridge_transaction?(%__MODULE__{to_address_hash: to_address_hash}) do
     case Hash.Address.cast(Application.get_env(:explorer, __MODULE__)[:rootstock_bridge_address]) do
       {:ok, address} -> address == to_address_hash
       _ -> false
@@ -1373,6 +1401,7 @@ defmodule Explorer.Chain.Transaction do
   defp address_to_transactions_tasks(address_hash, options, old_ui?) do
     direction = Keyword.get(options, :direction)
     necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
+    old_ui? = old_ui? || is_tuple(Keyword.get(options, :paging_options, Chain.default_paging_options()).key)
 
     options
     |> address_to_transactions_tasks_query(false, old_ui?)
@@ -1603,7 +1632,7 @@ defmodule Explorer.Chain.Transaction do
   end
 
   @doc """
-  Adds a `has_token_transfers` field to the query via `select_merge` if second argument is `true` and returns
+  Adds a `has_token_transfers` field to the query via `select_merge` if second argument is `false` and returns
   the query untouched otherwise.
   """
   @spec put_has_token_transfers_to_tx(Ecto.Query.t() | atom, boolean) :: Ecto.Query.t()

@@ -11,6 +11,7 @@ defmodule ConfigHelper do
       "polygon_edge" -> base_repos ++ [Explorer.Repo.PolygonEdge]
       "polygon_zkevm" -> base_repos ++ [Explorer.Repo.PolygonZkevm]
       "rsk" -> base_repos ++ [Explorer.Repo.RSK]
+      "shibarium" -> base_repos ++ [Explorer.Repo.Shibarium]
       "suave" -> base_repos ++ [Explorer.Repo.Suave]
       _ -> base_repos
     end
@@ -182,4 +183,9 @@ defmodule ConfigHelper do
 
   @spec chain_type() :: String.t()
   def chain_type, do: System.get_env("CHAIN_TYPE") || "ethereum"
+
+  @spec eth_call_url(String.t() | nil) :: String.t() | nil
+  def eth_call_url(default \\ nil) do
+    System.get_env("ETHEREUM_JSONRPC_ETH_CALL_URL") || System.get_env("ETHEREUM_JSONRPC_HTTP_URL") || default
+  end
 end

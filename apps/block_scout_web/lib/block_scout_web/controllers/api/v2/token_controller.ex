@@ -20,6 +20,8 @@ defmodule BlockScoutWeb.API.V2.TokenController do
   import BlockScoutWeb.PagingHelper,
     only: [delete_parameters_from_next_page_params: 1, token_transfers_types_options: 1, tokens_sorting: 1]
 
+  import Explorer.MicroserviceInterfaces.BENS, only: [maybe_preload_ens: 1]
+
   action_fallback(BlockScoutWeb.API.V2.FallbackController)
 
   @api_true [api?: true]
@@ -67,7 +69,10 @@ defmodule BlockScoutWeb.API.V2.TokenController do
       conn
       |> put_status(200)
       |> put_view(TransactionView)
-      |> render(:token_transfers, %{token_transfers: token_transfers, next_page_params: next_page_params})
+      |> render(:token_transfers, %{
+        token_transfers: token_transfers |> maybe_preload_ens(),
+        next_page_params: next_page_params
+      })
     end
   end
 
@@ -84,7 +89,11 @@ defmodule BlockScoutWeb.API.V2.TokenController do
 
       conn
       |> put_status(200)
-      |> render(:token_balances, %{token_balances: token_balances, next_page_params: next_page_params, token: token})
+      |> render(:token_balances, %{
+        token_balances: token_balances |> maybe_preload_ens(),
+        next_page_params: next_page_params,
+        token: token
+      })
     end
   end
 
@@ -95,7 +104,7 @@ defmodule BlockScoutWeb.API.V2.TokenController do
     with {:format, {:ok, address_hash}} <- {:format, Chain.string_to_address_hash(address_hash_string)},
          {:ok, false} <- AccessHelper.restricted_access?(address_hash_string, params),
          {:not_found, {:ok, token}} <- {:not_found, Chain.token_from_address_hash(address_hash, @api_true)},
-         {:not_found, false} <- {:not_found, Chain.is_erc_20_token?(token)},
+         {:not_found, false} <- {:not_found, Chain.erc_20_token?(token)},
          {:format, {:ok, holder_address_hash}} <- {:format, Chain.string_to_address_hash(holder_address_hash_string)},
          {:ok, false} <- AccessHelper.restricted_access?(holder_address_hash_string, params) do
       holder_address = Repo.get_by(Address, hash: holder_address_hash)
@@ -132,6 +141,7 @@ defmodule BlockScoutWeb.API.V2.TokenController do
       results_plus_one =
         Chain.address_to_unique_tokens(
           token.contract_address_hash,
+          token,
           Keyword.merge(unique_tokens_paging_options(params), @api_true)
         )
 
@@ -150,12 +160,17 @@ defmodule BlockScoutWeb.API.V2.TokenController do
     with {:format, {:ok, address_hash}} <- {:format, Chain.string_to_address_hash(address_hash_string)},
          {:ok, false} <- AccessHelper.restricted_access?(address_hash_string, params),
          {:not_found, {:ok, token}} <- {:not_found, Chain.token_from_address_hash(address_hash, @api_true)},
-         {:not_found, false} <- {:not_found, Chain.is_erc_20_token?(token)},
+         {:not_found, false} <- {:not_found, Chain.erc_20_token?(token)},
          {:format, {token_id, ""}} <- {:format, Integer.parse(token_id_str)} do
       token_instance =
         case Chain.erc721_or_erc1155_token_instance_from_token_id_and_token_address(token_id, address_hash, @api_true) do
-          {:ok, token_instance} -> token_instance |> Chain.put_owner_to_token_instance(@api_true)
-          {:error, :not_found} -> %{token_id: token_id, metadata: nil, owner: nil}
+          {:ok, token_instance} ->
+            token_instance
+            |> Chain.select_repo(@api_true).preload(:owner)
+            |> Chain.put_owner_to_token_instance(token, @api_true)
+
+          {:error, :not_found} ->
+            %{token_id: token_id, metadata: nil, owner: nil}
         end
 
       conn
@@ -171,7 +186,7 @@ defmodule BlockScoutWeb.API.V2.TokenController do
     with {:format, {:ok, address_hash}} <- {:format, Chain.string_to_address_hash(address_hash_string)},
          {:ok, false} <- AccessHelper.restricted_access?(address_hash_string, params),
          {:not_found, {:ok, token}} <- {:not_found, Chain.token_from_address_hash(address_hash, @api_true)},
-         {:not_found, false} <- {:not_found, Chain.is_erc_20_token?(token)},
+         {:not_found, false} <- {:not_found, Chain.erc_20_token?(token)},
          {:format, {token_id, ""}} <- {:format, Integer.parse(token_id_str)} do
       paging_options = paging_options(params)
 
@@ -190,7 +205,10 @@ defmodule BlockScoutWeb.API.V2.TokenController do
       conn
       |> put_status(200)
       |> put_view(TransactionView)
-      |> render(:token_transfers, %{token_transfers: token_transfers, next_page_params: next_page_params})
+      |> render(:token_transfers, %{
+        token_transfers: token_transfers |> maybe_preload_ens(),
+        next_page_params: next_page_params
+      })
     end
   end
 
@@ -198,7 +216,7 @@ defmodule BlockScoutWeb.API.V2.TokenController do
     with {:format, {:ok, address_hash}} <- {:format, Chain.string_to_address_hash(address_hash_string)},
          {:ok, false} <- AccessHelper.restricted_access?(address_hash_string, params),
          {:not_found, {:ok, token}} <- {:not_found, Chain.token_from_address_hash(address_hash, @api_true)},
-         {:not_found, false} <- {:not_found, Chain.is_erc_20_token?(token)},
+         {:not_found, false} <- {:not_found, Chain.erc_20_token?(token)},
          {:format, {token_id, ""}} <- {:format, Integer.parse(token_id_str)} do
       paging_options = paging_options(params)
 
@@ -217,7 +235,11 @@ defmodule BlockScoutWeb.API.V2.TokenController do
 
       conn
       |> put_status(200)
-      |> render(:token_balances, %{token_balances: token_holders, next_page_params: next_page_params, token: token})
+      |> render(:token_balances, %{
+        token_balances: token_holders |> maybe_preload_ens(),
+        next_page_params: next_page_params,
+        token: token
+      })
     end
   end
 
@@ -228,7 +250,7 @@ defmodule BlockScoutWeb.API.V2.TokenController do
     with {:format, {:ok, address_hash}} <- {:format, Chain.string_to_address_hash(address_hash_string)},
          {:ok, false} <- AccessHelper.restricted_access?(address_hash_string, params),
          {:not_found, {:ok, token}} <- {:not_found, Chain.token_from_address_hash(address_hash, @api_true)},
-         {:not_found, false} <- {:not_found, Chain.is_erc_20_token?(token)},
+         {:not_found, false} <- {:not_found, Chain.erc_20_token?(token)},
          {:format, {token_id, ""}} <- {:format, Integer.parse(token_id_str)} do
       conn
       |> put_status(200)
