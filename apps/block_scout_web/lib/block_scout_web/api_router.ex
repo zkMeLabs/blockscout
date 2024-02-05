@@ -252,7 +252,6 @@ defmodule BlockScoutWeb.ApiRouter do
       end
 
       get("/", V2.TokenController, :tokens_list)
-      get("/bridged", V2.TokenController, :bridged_tokens_list)
       get("/:address_hash_param", V2.TokenController, :token)
       get("/:address_hash_param/counters", V2.TokenController, :counters)
       get("/:address_hash_param/transfers", V2.TokenController, :transfers)

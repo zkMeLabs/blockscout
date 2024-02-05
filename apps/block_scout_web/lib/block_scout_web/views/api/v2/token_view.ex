@@ -38,8 +38,7 @@ defmodule BlockScoutWeb.API.V2.TokenView do
       "exchange_rate" => exchange_rate(token),
       "total_supply" => token.total_supply,
       "icon_url" => token.icon_url,
-      "circulating_market_cap" => token.circulating_market_cap,
-      "is_bridged" => token.bridged
+      "circulating_market_cap" => token.circulating_market_cap
     }
     |> maybe_append_bridged_info(token)
   end

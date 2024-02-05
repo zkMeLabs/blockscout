@@ -11,7 +11,6 @@ defmodule BlockScoutWeb.PagingHelper do
   @allowed_filter_labels ["validated", "pending"]
   @allowed_type_labels ["coin_transfer", "contract_call", "contract_creation", "token_transfer", "token_creation"]
   @allowed_token_transfer_type_labels ["ERC-20", "ERC-721", "ERC-1155"]
-  @allowed_chain_id [1, 56, 99]
   @allowed_nft_token_type_labels ["ERC-721", "ERC-1155"]
   @allowed_chain_id [1, 56, 99]
 

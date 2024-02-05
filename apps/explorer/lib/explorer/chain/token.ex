@@ -56,7 +56,6 @@ defmodule Explorer.Chain.Token do
   * `contract_address_hash` - Address hash foreign key
   * `holder_count` - the number of `t:Explorer.Chain.Address.t/0` (except the burn address) that have a
     `t:Explorer.Chain.CurrentTokenBalance.t/0` `value > 0`.  Can be `nil` when data not migrated.
-  * `bridged` - Flag for bridged tokens from other chain
   * `fiat_value` - The price of a token in a configured currency (USD by default).
   * `circulating_market_cap` - The circulating market cap of a token in a configured currency (USD by default).
   * `icon_url` - URL of the token's icon.
@@ -107,7 +106,6 @@ defmodule Explorer.Chain.Token do
     field(:type, :string)
     field(:cataloged, :boolean)
     field(:holder_count, :integer)
-    field(:bridged, :boolean)
     field(:skip_metadata, :boolean)
     field(:total_supply_updated_at_block, :integer)
     field(:fiat_value, :decimal)
@@ -132,7 +130,7 @@ defmodule Explorer.Chain.Token do
   end
 
   @required_attrs ~w(contract_address_hash type)a
-  @optional_attrs ~w(cataloged decimals name symbol total_supply bridged skip_metadata total_supply_updated_at_block updated_at fiat_value circulating_market_cap icon_url is_verified_via_admin_panel)a
+  @optional_attrs ~w(cataloged decimals name symbol total_supply skip_metadata total_supply_updated_at_block updated_at fiat_value circulating_market_cap icon_url is_verified_via_admin_panel)a
 
   @doc false
   def changeset(%Token{} = token, params \\ %{}) do
