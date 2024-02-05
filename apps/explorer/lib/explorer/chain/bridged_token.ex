@@ -117,14 +117,19 @@ defmodule Explorer.Chain.BridgedToken do
     |> Repo.all()
   end
 
-  def bridged_tokens_enabled? do
-    eth_omni_bridge_mediator = Application.get_env(:block_scout_web, :eth_omni_bridge_mediator)
-    bsc_omni_bridge_mediator = Application.get_env(:block_scout_web, :bsc_omni_bridge_mediator)
-    poa_omni_bridge_mediator = Application.get_env(:block_scout_web, :poa_omni_bridge_mediator)
+  def necessary_envs_passed? do
+    config = Application.get_env(:explorer, __MODULE__)
+    eth_omni_bridge_mediator = config[:eth_omni_bridge_mediator]
+    bsc_omni_bridge_mediator = config[:bsc_omni_bridge_mediator]
+    poa_omni_bridge_mediator = config[:poa_omni_bridge_mediator]
 
     (eth_omni_bridge_mediator && eth_omni_bridge_mediator !== "") ||
       (bsc_omni_bridge_mediator && bsc_omni_bridge_mediator !== "") ||
       (poa_omni_bridge_mediator && poa_omni_bridge_mediator !== "")
+  end
+
+  def enabled? do
+    Application.get_env(:explorer, __MODULE__)[:enabled]
   end
 
   @doc """
@@ -145,12 +150,12 @@ defmodule Explorer.Chain.BridgedToken do
   Processes AMB tokens from mediators addresses provided
   """
   def process_amb_tokens do
-    amb_bridge_mediators_var = Application.get_env(:block_scout_web, :amb_bridge_mediators)
+    amb_bridge_mediators_var = Application.get_env(:explorer, __MODULE__)[:amb_bridge_mediators]
     amb_bridge_mediators = (amb_bridge_mediators_var && String.split(amb_bridge_mediators_var, ",")) || []
 
     json_rpc_named_arguments = Application.get_env(:explorer, :json_rpc_named_arguments)
 
-    foreign_json_rpc = Application.get_env(:block_scout_web, :foreign_json_rpc)
+    foreign_json_rpc = Application.get_env(:explorer, __MODULE__)[:foreign_json_rpc]
 
     eth_call_foreign_json_rpc_named_arguments =
       compose_foreign_json_rpc_named_arguments(json_rpc_named_arguments, foreign_json_rpc)
@@ -297,7 +302,7 @@ defmodule Explorer.Chain.BridgedToken do
   end
 
   defp extract_omni_bridged_token_metadata_wrapper(token_address_hash, created_from_int_tx_success, mediator) do
-    omni_bridge_mediator = Application.get_env(:block_scout_web, mediator)
+    omni_bridge_mediator = Application.get_env(:explorer, __MODULE__)[mediator]
     %{transaction_hash: transaction_hash} = created_from_int_tx_success
 
     if omni_bridge_mediator && omni_bridge_mediator !== "" do
@@ -349,7 +354,7 @@ defmodule Explorer.Chain.BridgedToken do
 
       foreign_chain_id = decode_contract_integer_response(foreign_chain_id_abi_encoded)
 
-      foreign_json_rpc = Application.get_env(:block_scout_web, :foreign_json_rpc)
+      foreign_json_rpc = Application.get_env(:explorer, __MODULE__)[:foreign_json_rpc]
 
       custom_metadata =
         if foreign_chain_id == 1 do
@@ -457,7 +462,7 @@ defmodule Explorer.Chain.BridgedToken do
 
   defp set_token_bridged_status(token_address_hash, status) do
     case Repo.get(Token, token_address_hash) do
-      %Explorer.Chain.Token{bridged: bridged} = target_token ->
+      %{bridged: bridged} = target_token ->
         if !bridged do
           token = Changeset.change(target_token, bridged: status)
 
@@ -620,7 +625,7 @@ defmodule Explorer.Chain.BridgedToken do
 
   def calc_lp_tokens_total_liquidity do
     json_rpc_named_arguments = Application.get_env(:explorer, :json_rpc_named_arguments)
-    foreign_json_rpc = Application.get_env(:block_scout_web, :foreign_json_rpc)
+    foreign_json_rpc = Application.get_env(:explorer, __MODULE__)[:foreign_json_rpc]
     bridged_mainnet_tokens_list = BridgedToken.get_unprocessed_mainnet_lp_tokens_list()
 
     Enum.each(bridged_mainnet_tokens_list, fn bridged_token ->
