@@ -8,7 +8,7 @@
 
 ### Chore
 
-- [#9256](https://github.com/blockscout/blockscout/pull/9256) - Migrate to Elixir 1.16.0 and Erlang/OTP 26
+- [#9256](https://github.com/blockscout/blockscout/pull/9256) - Migrate to Elixir 1.16.1 and Erlang/OTP 26
 
 <details>
   <summary>Dependencies version bumps</summary>
