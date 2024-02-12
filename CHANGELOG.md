@@ -4,6 +4,7 @@
 
 ### Features
 
+- [#9386](https://github.com/blockscout/blockscout/pull/9386) - Filecoin JSON RPC variant
 - [#9379](https://github.com/blockscout/blockscout/pull/9379) - Filter non-traceable transactions for zetachain
 - [#9351](https://github.com/blockscout/blockscout/pull/9351) - Noves.fi: add proxy endpoint for describeTxs endpoint
 - [#9282](https://github.com/blockscout/blockscout/pull/9282) - Add `license_type` to smart contracts
