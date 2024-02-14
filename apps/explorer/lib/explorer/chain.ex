@@ -3783,7 +3783,11 @@ defmodule Explorer.Chain do
     |> select_repo(options).all()
   end
 
-  @spec erc721_or_erc1155_token_instance_from_token_id_and_token_address(non_neg_integer(), Hash.Address.t(), [api?]) ::
+  @spec erc721_or_erc1155_token_instance_from_token_id_and_token_address(
+          Decimal.t() | non_neg_integer(),
+          Hash.Address.t(),
+          [api?]
+        ) ::
           {:ok, Instance.t()} | {:error, :not_found}
   def erc721_or_erc1155_token_instance_from_token_id_and_token_address(token_id, token_contract_address, options \\ []) do
     query = Instance.token_instance_query(token_id, token_contract_address)
@@ -4848,6 +4852,11 @@ defmodule Explorer.Chain do
             as: :created_token
           )
         )
+
+      :blob_transaction ->
+        dynamic
+        |> filter_blob_transaction_dynamic()
+        |> apply_filter_by_tx_type_to_transactions_inner(remain, query)
     end
   end
 
@@ -4879,6 +4888,11 @@ defmodule Explorer.Chain do
 
   def filter_token_creation_dynamic(dynamic) do
     dynamic([tx, created_token: created_token], ^dynamic or not is_nil(created_token))
+  end
+
+  def filter_blob_transaction_dynamic(dynamic) do
+    # EIP-2718 blob transaction type
+    dynamic([tx], ^dynamic or tx.type == 3)
   end
 
   def count_verified_contracts do
