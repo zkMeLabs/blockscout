@@ -13,6 +13,7 @@ defmodule Explorer.Chain.Import.Stage.BlockReferencing do
     Runner.Logs,
     Runner.Tokens,
     Runner.TokenTransfers,
+    Runner.TokenInstances,
     Runner.Address.TokenBalances,
     Runner.TransactionActions,
     Runner.Withdrawals
@@ -26,9 +27,11 @@ defmodule Explorer.Chain.Import.Stage.BlockReferencing do
   ]
 
   @polygon_zkevm_runners [
-    Runner.Zkevm.LifecycleTransactions,
-    Runner.Zkevm.TransactionBatches,
-    Runner.Zkevm.BatchTransactions
+    Runner.PolygonZkevm.LifecycleTransactions,
+    Runner.PolygonZkevm.TransactionBatches,
+    Runner.PolygonZkevm.BatchTransactions,
+    Runner.PolygonZkevm.BridgeL1Tokens,
+    Runner.PolygonZkevm.BridgeOperations
   ]
 
   @shibarium_runners [

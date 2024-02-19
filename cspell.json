@@ -170,6 +170,7 @@
         "exvcr",
         "Faileddi",
         "falala",
+        "FEVM",
         "Filesize",
         "Filecoin",
         "fkey",
@@ -398,6 +399,8 @@
         "retryable",
         "returnaddress",
         "reuseaddr",
+        "rollup",
+        "rollups",
         "RPC's",
         "RPCs",
         "safelow",
@@ -572,7 +575,10 @@
         "checkproxyverification",
         "NOTOK",
         "sushiswap",
-        "zetachain"
+        "zetachain",
+        "zksync",
+        "filecoin",
+        "Filecoin"
     ],
     "enableFiletypes": [
         "dotenv",

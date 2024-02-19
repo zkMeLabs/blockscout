@@ -596,8 +596,14 @@ config :indexer, Indexer.Fetcher.TokenInstance.Retry.Supervisor,
 config :indexer, Indexer.Fetcher.TokenInstance.Sanitize.Supervisor,
   disabled?: ConfigHelper.parse_bool_env_var("INDEXER_DISABLE_TOKEN_INSTANCE_SANITIZE_FETCHER")
 
-config :indexer, Indexer.Fetcher.TokenInstance.LegacySanitize.Supervisor,
-  disabled?: ConfigHelper.parse_bool_env_var("INDEXER_DISABLE_TOKEN_INSTANCE_LEGACY_SANITIZE_FETCHER", "true")
+config :indexer, Indexer.Fetcher.TokenInstance.LegacySanitize,
+  enabled: !ConfigHelper.parse_bool_env_var("INDEXER_DISABLE_TOKEN_INSTANCE_LEGACY_SANITIZE_FETCHER", "true")
+
+config :indexer, Indexer.Fetcher.TokenInstance.SanitizeERC1155,
+  enabled: !ConfigHelper.parse_bool_env_var("INDEXER_DISABLE_TOKEN_INSTANCE_ERC_1155_SANITIZE_FETCHER", "false")
+
+config :indexer, Indexer.Fetcher.TokenInstance.SanitizeERC721,
+  enabled: !ConfigHelper.parse_bool_env_var("INDEXER_DISABLE_TOKEN_INSTANCE_ERC_721_SANITIZE_FETCHER", "false")
 
 config :indexer, Indexer.Fetcher.EmptyBlocksSanitizer,
   batch_size: ConfigHelper.parse_integer_env_var("INDEXER_EMPTY_BLOCKS_SANITIZER_BATCH_SIZE", 100),
@@ -617,6 +623,9 @@ config :indexer, Indexer.Fetcher.BlockReward,
   batch_size: ConfigHelper.parse_integer_env_var("INDEXER_BLOCK_REWARD_BATCH_SIZE", 10),
   concurrency: ConfigHelper.parse_integer_env_var("INDEXER_BLOCK_REWARD_CONCURRENCY", 4)
 
+config :indexer, Indexer.Fetcher.TokenInstance.Helper,
+  base_uri_retry?: ConfigHelper.parse_bool_env_var("INDEXER_TOKEN_INSTANCE_USE_BASE_URI_RETRY")
+
 config :indexer, Indexer.Fetcher.TokenInstance.Retry,
   concurrency: ConfigHelper.parse_integer_env_var("INDEXER_TOKEN_INSTANCE_RETRY_CONCURRENCY", 10),
   batch_size: ConfigHelper.parse_integer_env_var("INDEXER_TOKEN_INSTANCE_RETRY_BATCH_SIZE", 10),
@@ -634,6 +643,16 @@ config :indexer, Indexer.Fetcher.TokenInstance.LegacySanitize,
   concurrency: ConfigHelper.parse_integer_env_var("INDEXER_TOKEN_INSTANCE_LEGACY_SANITIZE_CONCURRENCY", 2),
   batch_size: ConfigHelper.parse_integer_env_var("INDEXER_TOKEN_INSTANCE_LEGACY_SANITIZE_BATCH_SIZE", 10)
 
+config :indexer, Indexer.Fetcher.TokenInstance.SanitizeERC1155,
+  concurrency: ConfigHelper.parse_integer_env_var("INDEXER_TOKEN_INSTANCE_ERC_1155_SANITIZE_CONCURRENCY", 2),
+  batch_size: ConfigHelper.parse_integer_env_var("INDEXER_TOKEN_INSTANCE_ERC_1155_SANITIZE_BATCH_SIZE", 10)
+
+config :indexer, Indexer.Fetcher.TokenInstance.SanitizeERC721,
+  concurrency: ConfigHelper.parse_integer_env_var("INDEXER_TOKEN_INSTANCE_ERC_721_SANITIZE_CONCURRENCY", 2),
+  batch_size: ConfigHelper.parse_integer_env_var("INDEXER_TOKEN_INSTANCE_ERC_721_SANITIZE_BATCH_SIZE", 10),
+  tokens_queue_size:
+    ConfigHelper.parse_integer_env_var("INDEXER_TOKEN_INSTANCE_ERC_721_SANITIZE_TOKENS_BATCH_SIZE", 100)
+
 config :indexer, Indexer.Fetcher.InternalTransaction,
   batch_size: ConfigHelper.parse_integer_env_var("INDEXER_INTERNAL_TRANSACTIONS_BATCH_SIZE", 10),
   concurrency: ConfigHelper.parse_integer_env_var("INDEXER_INTERNAL_TRANSACTIONS_CONCURRENCY", 4),
@@ -648,8 +667,6 @@ config :indexer, Indexer.Fetcher.Withdrawal.Supervisor,
   disabled?: System.get_env("INDEXER_DISABLE_WITHDRAWALS_FETCHER", "true") == "true"
 
 config :indexer, Indexer.Fetcher.Withdrawal, first_block: System.get_env("WITHDRAWALS_FIRST_BLOCK")
-
-config :indexer, Indexer.Fetcher.PolygonEdge.Supervisor, enabled: ConfigHelper.chain_type() == "polygon_edge"
 
 config :indexer, Indexer.Fetcher.PolygonEdge.Deposit.Supervisor, enabled: ConfigHelper.chain_type() == "polygon_edge"
 
@@ -681,14 +698,6 @@ config :indexer, Indexer.Fetcher.PolygonEdge.Withdrawal,
 config :indexer, Indexer.Fetcher.PolygonEdge.WithdrawalExit,
   start_block_l1: System.get_env("INDEXER_POLYGON_EDGE_L1_WITHDRAWALS_START_BLOCK"),
   exit_helper: System.get_env("INDEXER_POLYGON_EDGE_L1_EXIT_HELPER_CONTRACT")
-
-config :indexer, Indexer.Fetcher.Zkevm.TransactionBatch,
-  chunk_size: ConfigHelper.parse_integer_env_var("INDEXER_ZKEVM_BATCHES_CHUNK_SIZE", 20),
-  recheck_interval: ConfigHelper.parse_integer_env_var("INDEXER_ZKEVM_BATCHES_RECHECK_INTERVAL", 60)
-
-config :indexer, Indexer.Fetcher.Zkevm.TransactionBatch.Supervisor,
-  enabled:
-    ConfigHelper.chain_type() == "polygon_zkevm" && ConfigHelper.parse_bool_env_var("INDEXER_ZKEVM_BATCHES_ENABLED")
 
 config :indexer, Indexer.Fetcher.RootstockData.Supervisor,
   disabled?:
@@ -734,6 +743,33 @@ config :indexer, Indexer.Fetcher.Shibarium.L2,
 config :indexer, Indexer.Fetcher.Shibarium.L1.Supervisor, enabled: ConfigHelper.chain_type() == "shibarium"
 
 config :indexer, Indexer.Fetcher.Shibarium.L2.Supervisor, enabled: ConfigHelper.chain_type() == "shibarium"
+
+config :indexer, Indexer.Fetcher.PolygonZkevm.BridgeL1,
+  rpc: System.get_env("INDEXER_POLYGON_ZKEVM_L1_RPC"),
+  start_block: System.get_env("INDEXER_POLYGON_ZKEVM_L1_BRIDGE_START_BLOCK"),
+  bridge_contract: System.get_env("INDEXER_POLYGON_ZKEVM_L1_BRIDGE_CONTRACT"),
+  native_symbol: System.get_env("INDEXER_POLYGON_ZKEVM_L1_BRIDGE_NATIVE_SYMBOL", "ETH"),
+  native_decimals: ConfigHelper.parse_integer_env_var("INDEXER_POLYGON_ZKEVM_L1_BRIDGE_NATIVE_DECIMALS", 18)
+
+config :indexer, Indexer.Fetcher.PolygonZkevm.BridgeL1.Supervisor, enabled: ConfigHelper.chain_type() == "polygon_zkevm"
+
+config :indexer, Indexer.Fetcher.PolygonZkevm.BridgeL1Tokens.Supervisor,
+  enabled: ConfigHelper.chain_type() == "polygon_zkevm"
+
+config :indexer, Indexer.Fetcher.PolygonZkevm.BridgeL2,
+  start_block: System.get_env("INDEXER_POLYGON_ZKEVM_L2_BRIDGE_START_BLOCK"),
+  bridge_contract: System.get_env("INDEXER_POLYGON_ZKEVM_L2_BRIDGE_CONTRACT")
+
+config :indexer, Indexer.Fetcher.PolygonZkevm.BridgeL2.Supervisor, enabled: ConfigHelper.chain_type() == "polygon_zkevm"
+
+config :indexer, Indexer.Fetcher.PolygonZkevm.TransactionBatch,
+  chunk_size: ConfigHelper.parse_integer_env_var("INDEXER_POLYGON_ZKEVM_BATCHES_CHUNK_SIZE", 20),
+  recheck_interval: ConfigHelper.parse_integer_env_var("INDEXER_POLYGON_ZKEVM_BATCHES_RECHECK_INTERVAL", 60)
+
+config :indexer, Indexer.Fetcher.PolygonZkevm.TransactionBatch.Supervisor,
+  enabled:
+    ConfigHelper.chain_type() == "polygon_zkevm" &&
+      ConfigHelper.parse_bool_env_var("INDEXER_POLYGON_ZKEVM_BATCHES_ENABLED")
 
 Code.require_file("#{config_env()}.exs", "config/runtime")
 

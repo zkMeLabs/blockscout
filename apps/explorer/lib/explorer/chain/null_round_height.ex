@@ -32,29 +32,13 @@ defmodule Explorer.Chain.NullRoundHeight do
     Repo.insert_all(__MODULE__, params, on_conflict: :nothing)
   end
 
-  def previous_block_number(number), do: neighbor_block_number(number, :previous)
-
-  def next_block_number(number), do: neighbor_block_number(number, :next)
-
-  @batch_size 5
-  def neighbor_block_number(number, direction) do
-    number
-    |> neighbors_query(direction)
-    |> select([nrh], nrh.height)
-    |> Repo.all()
-    |> case do
-      [] -> move_by_one(number, direction)
-      previous_null_rounds -> find_neighbor_from_previous(previous_null_rounds, number, direction)
-    end
-  end
-
   defp find_neighbor_from_previous(previous_null_rounds, number, direction) do
     previous_null_rounds
-    |> Enum.reduce_while({number, nil}, fn height, {curr, _result} ->
-      if height == move_by_one(curr, direction) do
+    |> Enum.reduce_while({number, nil}, fn height, {current, _result} ->
+      if height == move_by_one(current, direction) do
         {:cont, {height, nil}}
       else
-        {:halt, {nil, move_by_one(curr, direction)}}
+        {:halt, {nil, move_by_one(current, direction)}}
       end
     end)
     |> elem(1)
@@ -69,9 +53,24 @@ defmodule Explorer.Chain.NullRoundHeight do
     end
   end
 
+  def neighbor_block_number(number, direction) do
+    number
+    |> neighbors_query(direction)
+    |> select([nrh], nrh.height)
+    |> Repo.all()
+    |> case do
+      [] ->
+        move_by_one(number, direction)
+
+      previous_null_rounds ->
+        find_neighbor_from_previous(previous_null_rounds, number, direction)
+    end
+  end
+
   defp move_by_one(number, :previous), do: number - 1
   defp move_by_one(number, :next), do: number + 1
 
+  @batch_size 5
   defp neighbors_query(number, :previous) do
     from(nrh in __MODULE__, where: nrh.height < ^number, order_by: [desc: :height], limit: @batch_size)
   end

@@ -48,6 +48,7 @@ defmodule Explorer.Chain do
     Address.CurrentTokenBalance,
     Address.TokenBalance,
     Block,
+    BlockNumberHelper,
     CurrencyHelper,
     Data,
     DecompiledSmartContract,
@@ -56,7 +57,6 @@ defmodule Explorer.Chain do
     Import,
     InternalTransaction,
     Log,
-    NullRoundHeight,
     PendingBlockOperation,
     SmartContract,
     Token,
@@ -1090,11 +1090,13 @@ defmodule Explorer.Chain do
   @doc """
   Converts list of `t:Explorer.Chain.Address.t/0` `hash` to the `t:Explorer.Chain.Address.t/0` with that `hash`.
 
-  Returns `[%Explorer.Chain.Address{}]}` if found
+  Returns `[%Explorer.Chain.Address{}]` if found
 
   """
-  @spec hashes_to_addresses([Hash.Address.t()]) :: [Address.t()]
-  def hashes_to_addresses(hashes) when is_list(hashes) do
+  @spec hashes_to_addresses([Hash.Address.t()], [necessity_by_association_option | api?]) :: [Address.t()]
+  def hashes_to_addresses(hashes, options \\ []) when is_list(hashes) do
+    necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
+
     query =
       from(
         address in Address,
@@ -1103,7 +1105,9 @@ defmodule Explorer.Chain do
         order_by: fragment("array_position(?, ?)", type(^hashes, {:array, Hash.Address}), address.hash)
       )
 
-    Repo.all(query)
+    query
+    |> join_associations(necessity_by_association)
+    |> select_repo(options).all()
   end
 
   @doc """
@@ -1408,7 +1412,7 @@ defmodule Explorer.Chain do
   If there are no blocks, the percentage is 0.
 
       iex> Explorer.Chain.indexed_ratio_blocks()
-      Decimal.new(0)
+      Decimal.new(1)
 
   """
   @spec indexed_ratio_blocks() :: Decimal.t()
@@ -1420,10 +1424,10 @@ defmodule Explorer.Chain do
 
       case {min_saved_block_number, max_saved_block_number} do
         {0, 0} ->
-          Decimal.new(0)
+          Decimal.new(1)
 
         _ ->
-          divisor = max_saved_block_number - min_blockchain_block_number - NullRoundHeight.total() + 1
+          divisor = max_saved_block_number - min_blockchain_block_number - BlockNumberHelper.null_rounds_count() + 1
 
           ratio = get_ratio(BlockCache.estimated_count(), divisor)
 
@@ -1455,7 +1459,9 @@ defmodule Explorer.Chain do
           Decimal.new(0)
 
         _ ->
-          full_blocks_range = max_saved_block_number - min_blockchain_trace_block_number - NullRoundHeight.total() + 1
+          full_blocks_range =
+            max_saved_block_number - min_blockchain_trace_block_number - BlockNumberHelper.null_rounds_count() + 1
+
           processed_int_txs_for_blocks_count = max(0, full_blocks_range - pbo_count)
 
           ratio = get_ratio(processed_int_txs_for_blocks_count, full_blocks_range)
@@ -2208,27 +2214,50 @@ defmodule Explorer.Chain do
     range_max = max(range_start, range_end)
 
     ordered_missing_query =
-      from(b in Block,
-        right_join:
-          missing_range in fragment(
-            """
-            (
-              SELECT distinct b1.number
-              FROM generate_series((?)::integer, (?)::integer) AS b1(number)
-              WHERE NOT EXISTS
-                (SELECT 1 FROM blocks b2 WHERE b2.number=b1.number AND b2.consensus)
-              AND NOT EXISTS (SELECT 1 FROM null_round_heights nrh where nrh.height=b1.number)
-              ORDER BY b1.number DESC
-            )
-            """,
-            ^range_min,
-            ^range_max
-          ),
-        on: b.number == missing_range.number,
-        select: missing_range.number,
-        order_by: missing_range.number,
-        distinct: missing_range.number
-      )
+      if Application.get_env(:explorer, :chain_type) == "filecoin" do
+        from(b in Block,
+          right_join:
+            missing_range in fragment(
+              """
+              (
+                SELECT distinct b1.number
+                FROM generate_series((?)::integer, (?)::integer) AS b1(number)
+                WHERE NOT EXISTS
+                  (SELECT 1 FROM blocks b2 WHERE b2.number=b1.number AND b2.consensus)
+                AND NOT EXISTS (SELECT 1 FROM null_round_heights nrh where nrh.height=b1.number)
+                ORDER BY b1.number DESC
+              )
+              """,
+              ^range_min,
+              ^range_max
+            ),
+          on: b.number == missing_range.number,
+          select: missing_range.number,
+          order_by: missing_range.number,
+          distinct: missing_range.number
+        )
+      else
+        from(b in Block,
+          right_join:
+            missing_range in fragment(
+              """
+              (
+                SELECT distinct b1.number
+                FROM generate_series((?)::integer, (?)::integer) AS b1(number)
+                WHERE NOT EXISTS
+                  (SELECT 1 FROM blocks b2 WHERE b2.number=b1.number AND b2.consensus)
+                ORDER BY b1.number DESC
+              )
+              """,
+              ^range_min,
+              ^range_max
+            ),
+          on: b.number == missing_range.number,
+          select: missing_range.number,
+          order_by: missing_range.number,
+          distinct: missing_range.number
+        )
+      end
 
     missing_blocks = Repo.all(ordered_missing_query, timeout: :infinity)
 
@@ -2366,13 +2395,13 @@ defmodule Explorer.Chain do
              DateTime.compare(timestamp, given_timestamp) == :eq do
           number
         else
-          NullRoundHeight.previous_block_number(number)
+          BlockNumberHelper.previous_block_number(number)
         end
 
       :after ->
         if DateTime.compare(timestamp, given_timestamp) == :lt ||
              DateTime.compare(timestamp, given_timestamp) == :eq do
-          NullRoundHeight.next_block_number(number)
+          BlockNumberHelper.next_block_number(number)
         else
           number
         end
@@ -3716,8 +3745,12 @@ defmodule Explorer.Chain do
   """
   @spec update_token(Token.t(), map()) :: {:ok, Token.t()} | {:error, Ecto.Changeset.t()}
   def update_token(%Token{contract_address_hash: address_hash} = token, params \\ %{}) do
-    token_changeset = Token.changeset(token, Map.put(params, :updated_at, DateTime.utc_now()))
-    address_name_changeset = Address.Name.changeset(%Address.Name{}, Map.put(params, :address_hash, address_hash))
+    filtered_params = for({key, value} <- params, value !== "" && !is_nil(value), do: {key, value}) |> Enum.into(%{})
+
+    token_changeset = Token.changeset(token, Map.put(filtered_params, :updated_at, DateTime.utc_now()))
+
+    address_name_changeset =
+      Address.Name.changeset(%Address.Name{}, Map.put(filtered_params, :address_hash, address_hash))
 
     stale_error_field = :contract_address_hash
     stale_error_message = "is up to date"

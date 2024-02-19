@@ -8,7 +8,7 @@ defmodule BlockScoutWeb.Models.TransactionStateHelper do
 
   alias Explorer.Chain.Transaction.StateChange
   alias Explorer.{Chain, PagingOptions}
-  alias Explorer.Chain.{Block, NullRoundHeight, Transaction, Wei}
+  alias Explorer.Chain.{Block, BlockNumberHelper, Transaction, Wei}
   alias Explorer.Chain.Cache.StateChanges
   alias Indexer.Fetcher.{CoinBalanceOnDemand, TokenBalanceOnDemand}
 
@@ -73,7 +73,7 @@ defmodule BlockScoutWeb.Models.TransactionStateHelper do
         api?: Keyword.get(options, :api?, false)
       )
 
-    previous_block_number = NullRoundHeight.previous_block_number(block.number)
+    previous_block_number = BlockNumberHelper.previous_block_number(block.number)
 
     from_before_block = coin_balance(transaction.from_address_hash, previous_block_number, options)
     to_before_block = coin_balance(transaction.to_address_hash, previous_block_number, options)
@@ -148,7 +148,7 @@ defmodule BlockScoutWeb.Models.TransactionStateHelper do
     from = transfer.from_address
     to = transfer.to_address
     token_hash = transfer.token_contract_address_hash
-    prev_block = NullRoundHeight.previous_block_number(transfer.block_number)
+    prev_block = BlockNumberHelper.previous_block_number(transfer.block_number)
 
     balances
     |> case do

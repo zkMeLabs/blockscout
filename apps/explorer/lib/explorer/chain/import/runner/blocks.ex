@@ -14,8 +14,8 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
   alias Explorer.Chain.{
     Address,
     Block,
+    BlockNumberHelper,
     Import,
-    NullRoundHeight,
     PendingBlockOperation,
     Token,
     Token.Instance,
@@ -885,8 +885,8 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
                                                 number: number
                                               },
                                               acc ->
-        previous_block_number = NullRoundHeight.previous_block_number(number)
-        next_block_number = NullRoundHeight.next_block_number(number)
+        previous_block_number = BlockNumberHelper.previous_block_number(number)
+        next_block_number = BlockNumberHelper.next_block_number(number)
 
         if consensus do
           from(

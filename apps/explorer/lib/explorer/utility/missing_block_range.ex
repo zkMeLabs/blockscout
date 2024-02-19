@@ -4,7 +4,7 @@ defmodule Explorer.Utility.MissingBlockRange do
   """
   use Explorer.Schema
 
-  alias Explorer.Chain.NullRoundHeight
+  alias Explorer.Chain.BlockNumberHelper
   alias Explorer.Repo
 
   @default_returning_batch_size 10
@@ -80,26 +80,26 @@ defmodule Explorer.Utility.MissingBlockRange do
 
         insert_if_needed(%{
           from_number: same_range.from_number,
-          to_number: NullRoundHeight.next_block_number(max_number)
+          to_number: BlockNumberHelper.next_block_number(max_number)
         })
 
         insert_if_needed(%{
-          from_number: NullRoundHeight.previous_block_number(min_number),
+          from_number: BlockNumberHelper.previous_block_number(min_number),
           to_number: same_range.to_number
         })
 
       {%__MODULE__{} = range, nil} ->
         delete_ranges_between(max_number, range.from_number)
-        update_from_number_or_delete_range(range, NullRoundHeight.previous_block_number(min_number))
+        update_from_number_or_delete_range(range, BlockNumberHelper.previous_block_number(min_number))
 
       {nil, %__MODULE__{} = range} ->
         delete_ranges_between(range.to_number, min_number)
-        update_to_number_or_delete_range(range, NullRoundHeight.next_block_number(max_number))
+        update_to_number_or_delete_range(range, BlockNumberHelper.next_block_number(max_number))
 
       {%__MODULE__{} = range_1, %__MODULE__{} = range_2} ->
         delete_ranges_between(range_2.to_number, range_1.from_number)
-        update_from_number_or_delete_range(range_1, NullRoundHeight.previous_block_number(min_number))
-        update_to_number_or_delete_range(range_2, NullRoundHeight.next_block_number(max_number))
+        update_from_number_or_delete_range(range_1, BlockNumberHelper.previous_block_number(min_number))
+        update_to_number_or_delete_range(range_2, BlockNumberHelper.next_block_number(max_number))
 
       _ ->
         delete_ranges_between(max_number, min_number)
@@ -154,7 +154,7 @@ defmodule Explorer.Utility.MissingBlockRange do
     __MODULE__
     |> where([r], r.from_number < r.to_number)
     |> update([r], set: [from_number: r.to_number, to_number: r.from_number])
-    |> Repo.update_all([])
+    |> Repo.update_all([], timeout: :infinity)
 
     {last_range, merged_ranges} = delete_and_merge_ranges()
 
@@ -184,7 +184,7 @@ defmodule Explorer.Utility.MissingBlockRange do
              (r.to_number <= r1.from_number and r.to_number >= r1.to_number)) and r1.id != r.id
       )
       |> select([r, r1], r)
-      |> Repo.delete_all()
+      |> Repo.delete_all(timeout: :infinity)
 
     intersecting_ranges
   end
