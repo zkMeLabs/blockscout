@@ -1382,6 +1382,7 @@ defmodule Explorer.ChainTest do
       }
     }
 
+    @tag :no_geth
     test "with valid data" do
       {:ok, first_topic} = Explorer.Chain.Hash.Full.cast(@first_topic_hex_string)
       {:ok, second_topic} = Explorer.Chain.Hash.Full.cast(@second_topic_hex_string)
