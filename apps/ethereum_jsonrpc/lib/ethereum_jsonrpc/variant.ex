@@ -116,15 +116,19 @@ defmodule EthereumJSONRPC.Variant do
   end
 
   defp get_default_variant do
-    case Application.get_env(:explorer, :chain_type) do
-      "polygon_zkevm" -> "geth"
-      "zetachain" -> "geth"
-      "shibarium" -> "geth"
-      "stability" -> "geth"
-      "zksync" -> "geth"
-      "rsk" -> "rsk"
-      "filecoin" -> "filecoin"
-      _ -> "nethermind"
+    if Mix.env() == :test do
+      "nethermind"
+    else
+      case Application.get_env(:explorer, :chain_type) do
+        "polygon_zkevm" -> "geth"
+        "zetachain" -> "geth"
+        "shibarium" -> "geth"
+        "stability" -> "geth"
+        "zksync" -> "geth"
+        "rsk" -> "rsk"
+        "filecoin" -> "filecoin"
+        _ -> "nethermind"
+      end
     end
   end
 end
