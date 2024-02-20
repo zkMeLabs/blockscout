@@ -115,6 +115,7 @@ defmodule EthereumJSONRPC.Variant do
     end
   end
 
+  # credo:disable-for-next-line
   defp get_default_variant do
     if Mix.env() == :test do
       "nethermind"
