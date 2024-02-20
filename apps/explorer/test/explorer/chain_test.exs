@@ -1382,184 +1382,187 @@ defmodule Explorer.ChainTest do
       }
     }
 
-    @tag :no_geth
-    test "with valid data" do
-      {:ok, first_topic} = Explorer.Chain.Hash.Full.cast(@first_topic_hex_string)
-      {:ok, second_topic} = Explorer.Chain.Hash.Full.cast(@second_topic_hex_string)
-      {:ok, third_topic} = Explorer.Chain.Hash.Full.cast(@third_topic_hex_string)
-      difficulty = Decimal.new(340_282_366_920_938_463_463_374_607_431_768_211_454)
-      total_difficulty = Decimal.new(12_590_447_576_074_723_148_144_860_474_975_121_280_509)
-      token_transfer_amount = Decimal.new(1_000_000_000_000_000_000)
-      gas_limit = Decimal.new(6_946_336)
-      gas_used = Decimal.new(50450)
+    test "with valid data", %{json_rpc_named_arguments: json_rpc_named_arguments} do
+      if Keyword.fetch!(json_rpc_named_arguments, :variant) !== EthereumJSONRPC.Geth &&
+           Keyword.fetch!(json_rpc_named_arguments, :variant) !== EthereumJSONRPC.Filecoin &&
+           Keyword.fetch!(json_rpc_named_arguments, :variant) !== EthereumJSONRPC.RSK do
+        {:ok, first_topic} = Explorer.Chain.Hash.Full.cast(@first_topic_hex_string)
+        {:ok, second_topic} = Explorer.Chain.Hash.Full.cast(@second_topic_hex_string)
+        {:ok, third_topic} = Explorer.Chain.Hash.Full.cast(@third_topic_hex_string)
+        difficulty = Decimal.new(340_282_366_920_938_463_463_374_607_431_768_211_454)
+        total_difficulty = Decimal.new(12_590_447_576_074_723_148_144_860_474_975_121_280_509)
+        token_transfer_amount = Decimal.new(1_000_000_000_000_000_000)
+        gas_limit = Decimal.new(6_946_336)
+        gas_used = Decimal.new(50450)
 
-      assert {:ok,
-              %{
-                addresses: [
-                  %Address{
-                    hash: %Hash{
-                      byte_count: 20,
-                      bytes:
-                        <<81, 92, 9, 197, 187, 161, 237, 86, 107, 2, 165, 176, 89, 158, 197, 213, 208, 174, 231, 61>>
+        assert {:ok,
+                %{
+                  addresses: [
+                    %Address{
+                      hash: %Hash{
+                        byte_count: 20,
+                        bytes:
+                          <<81, 92, 9, 197, 187, 161, 237, 86, 107, 2, 165, 176, 89, 158, 197, 213, 208, 174, 231, 61>>
+                      },
+                      inserted_at: %{},
+                      updated_at: %{}
                     },
-                    inserted_at: %{},
-                    updated_at: %{}
-                  },
-                  %Address{
-                    hash: %Hash{
-                      byte_count: 20,
-                      bytes:
-                        <<139, 243, 141, 71, 100, 146, 144, 100, 242, 212, 211, 165, 101, 32, 167, 106, 179, 223, 65,
-                          91>>
+                    %Address{
+                      hash: %Hash{
+                        byte_count: 20,
+                        bytes:
+                          <<139, 243, 141, 71, 100, 146, 144, 100, 242, 212, 211, 165, 101, 32, 167, 106, 179, 223, 65,
+                            91>>
+                      },
+                      inserted_at: %{},
+                      updated_at: %{}
                     },
-                    inserted_at: %{},
-                    updated_at: %{}
-                  },
-                  %Address{
-                    hash: %Hash{
-                      byte_count: 20,
-                      bytes:
-                        <<232, 221, 197, 199, 162, 210, 240, 215, 169, 121, 132, 89, 192, 16, 79, 223, 94, 152, 122,
-                          202>>
-                    },
-                    inserted_at: %{},
-                    updated_at: %{}
-                  }
-                ],
-                blocks: [
-                  %Block{
-                    consensus: true,
-                    difficulty: ^difficulty,
-                    gas_limit: ^gas_limit,
-                    gas_used: ^gas_used,
-                    hash: %Hash{
-                      byte_count: 32,
-                      bytes:
-                        <<246, 180, 184, 200, 141, 243, 235, 210, 82, 236, 71, 99, 40, 51, 77, 192, 38, 207, 102, 96,
-                          106, 132, 251, 118, 155, 61, 60, 188, 204, 132, 113, 189>>
-                    },
-                    miner_hash: %Hash{
-                      byte_count: 20,
-                      bytes:
-                        <<232, 221, 197, 199, 162, 210, 240, 215, 169, 121, 132, 89, 192, 16, 79, 223, 94, 152, 122,
-                          202>>
-                    },
-                    nonce: %Explorer.Chain.Hash{
-                      byte_count: 8,
-                      bytes: <<0, 0, 0, 0, 0, 0, 0, 0>>
-                    },
-                    number: 37,
-                    parent_hash: %Hash{
-                      byte_count: 32,
-                      bytes:
-                        <<195, 123, 186, 215, 5, 121, 69, 209, 191, 18, 140, 31, 240, 9, 251, 26, 214, 50, 17, 11, 246,
-                          160, 0, 170, 192, 37, 168, 15, 119, 102, 182, 110>>
-                    },
-                    size: 719,
-                    timestamp: %DateTime{
-                      year: 2017,
-                      month: 12,
-                      day: 15,
-                      hour: 21,
-                      minute: 6,
-                      second: 30,
-                      microsecond: {0, 6},
-                      std_offset: 0,
-                      utc_offset: 0,
-                      time_zone: "Etc/UTC",
-                      zone_abbr: "UTC"
-                    },
-                    total_difficulty: ^total_difficulty,
-                    inserted_at: %{},
-                    updated_at: %{}
-                  }
-                ],
-                internal_transactions: [],
-                logs: [
-                  %Log{
-                    address_hash: %Hash{
-                      byte_count: 20,
-                      bytes:
-                        <<139, 243, 141, 71, 100, 146, 144, 100, 242, 212, 211, 165, 101, 32, 167, 106, 179, 223, 65,
-                          91>>
-                    },
-                    data: %Data{
-                      bytes:
-                        <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 224, 182, 179,
-                          167, 100, 0, 0>>
-                    },
-                    index: 0,
-                    first_topic: ^first_topic,
-                    second_topic: ^second_topic,
-                    third_topic: ^third_topic,
-                    fourth_topic: nil,
-                    transaction_hash: %Hash{
-                      byte_count: 32,
-                      bytes:
-                        <<83, 189, 136, 72, 114, 222, 62, 72, 134, 146, 136, 27, 174, 236, 38, 46, 123, 149, 35, 77, 57,
-                          101, 36, 140, 57, 254, 153, 47, 255, 212, 51, 229>>
-                    },
-                    inserted_at: %{},
-                    updated_at: %{}
-                  }
-                ],
-                transactions: [
-                  %Transaction{
-                    block_number: 37,
-                    index: 0,
-                    hash: %Hash{
-                      byte_count: 32,
-                      bytes:
-                        <<83, 189, 136, 72, 114, 222, 62, 72, 134, 146, 136, 27, 174, 236, 38, 46, 123, 149, 35, 77, 57,
-                          101, 36, 140, 57, 254, 153, 47, 255, 212, 51, 229>>
+                    %Address{
+                      hash: %Hash{
+                        byte_count: 20,
+                        bytes:
+                          <<232, 221, 197, 199, 162, 210, 240, 215, 169, 121, 132, 89, 192, 16, 79, 223, 94, 152, 122,
+                            202>>
+                      },
+                      inserted_at: %{},
+                      updated_at: %{}
                     }
-                  }
-                ],
-                tokens: [
-                  %Token{
-                    contract_address_hash: %Hash{
-                      byte_count: 20,
-                      bytes:
-                        <<139, 243, 141, 71, 100, 146, 144, 100, 242, 212, 211, 165, 101, 32, 167, 106, 179, 223, 65,
-                          91>>
-                    },
-                    type: "ERC-20",
-                    inserted_at: %{},
-                    updated_at: %{}
-                  }
-                ],
-                token_transfers: [
-                  %TokenTransfer{
-                    amount: ^token_transfer_amount,
-                    log_index: 0,
-                    from_address_hash: %Hash{
-                      byte_count: 20,
-                      bytes:
-                        <<232, 221, 197, 199, 162, 210, 240, 215, 169, 121, 132, 89, 192, 16, 79, 223, 94, 152, 122,
-                          202>>
-                    },
-                    to_address_hash: %Hash{
-                      byte_count: 20,
-                      bytes:
-                        <<81, 92, 9, 197, 187, 161, 237, 86, 107, 2, 165, 176, 89, 158, 197, 213, 208, 174, 231, 61>>
-                    },
-                    token_contract_address_hash: %Hash{
-                      byte_count: 20,
-                      bytes:
-                        <<139, 243, 141, 71, 100, 146, 144, 100, 242, 212, 211, 165, 101, 32, 167, 106, 179, 223, 65,
-                          91>>
-                    },
-                    transaction_hash: %Hash{
-                      byte_count: 32,
-                      bytes:
-                        <<83, 189, 136, 72, 114, 222, 62, 72, 134, 146, 136, 27, 174, 236, 38, 46, 123, 149, 35, 77, 57,
-                          101, 36, 140, 57, 254, 153, 47, 255, 212, 51, 229>>
-                    },
-                    inserted_at: %{},
-                    updated_at: %{}
-                  }
-                ]
-              }} = Chain.import(@import_data)
+                  ],
+                  blocks: [
+                    %Block{
+                      consensus: true,
+                      difficulty: ^difficulty,
+                      gas_limit: ^gas_limit,
+                      gas_used: ^gas_used,
+                      hash: %Hash{
+                        byte_count: 32,
+                        bytes:
+                          <<246, 180, 184, 200, 141, 243, 235, 210, 82, 236, 71, 99, 40, 51, 77, 192, 38, 207, 102, 96,
+                            106, 132, 251, 118, 155, 61, 60, 188, 204, 132, 113, 189>>
+                      },
+                      miner_hash: %Hash{
+                        byte_count: 20,
+                        bytes:
+                          <<232, 221, 197, 199, 162, 210, 240, 215, 169, 121, 132, 89, 192, 16, 79, 223, 94, 152, 122,
+                            202>>
+                      },
+                      nonce: %Explorer.Chain.Hash{
+                        byte_count: 8,
+                        bytes: <<0, 0, 0, 0, 0, 0, 0, 0>>
+                      },
+                      number: 37,
+                      parent_hash: %Hash{
+                        byte_count: 32,
+                        bytes:
+                          <<195, 123, 186, 215, 5, 121, 69, 209, 191, 18, 140, 31, 240, 9, 251, 26, 214, 50, 17, 11,
+                            246, 160, 0, 170, 192, 37, 168, 15, 119, 102, 182, 110>>
+                      },
+                      size: 719,
+                      timestamp: %DateTime{
+                        year: 2017,
+                        month: 12,
+                        day: 15,
+                        hour: 21,
+                        minute: 6,
+                        second: 30,
+                        microsecond: {0, 6},
+                        std_offset: 0,
+                        utc_offset: 0,
+                        time_zone: "Etc/UTC",
+                        zone_abbr: "UTC"
+                      },
+                      total_difficulty: ^total_difficulty,
+                      inserted_at: %{},
+                      updated_at: %{}
+                    }
+                  ],
+                  internal_transactions: [],
+                  logs: [
+                    %Log{
+                      address_hash: %Hash{
+                        byte_count: 20,
+                        bytes:
+                          <<139, 243, 141, 71, 100, 146, 144, 100, 242, 212, 211, 165, 101, 32, 167, 106, 179, 223, 65,
+                            91>>
+                      },
+                      data: %Data{
+                        bytes:
+                          <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 224, 182, 179,
+                            167, 100, 0, 0>>
+                      },
+                      index: 0,
+                      first_topic: ^first_topic,
+                      second_topic: ^second_topic,
+                      third_topic: ^third_topic,
+                      fourth_topic: nil,
+                      transaction_hash: %Hash{
+                        byte_count: 32,
+                        bytes:
+                          <<83, 189, 136, 72, 114, 222, 62, 72, 134, 146, 136, 27, 174, 236, 38, 46, 123, 149, 35, 77,
+                            57, 101, 36, 140, 57, 254, 153, 47, 255, 212, 51, 229>>
+                      },
+                      inserted_at: %{},
+                      updated_at: %{}
+                    }
+                  ],
+                  transactions: [
+                    %Transaction{
+                      block_number: 37,
+                      index: 0,
+                      hash: %Hash{
+                        byte_count: 32,
+                        bytes:
+                          <<83, 189, 136, 72, 114, 222, 62, 72, 134, 146, 136, 27, 174, 236, 38, 46, 123, 149, 35, 77,
+                            57, 101, 36, 140, 57, 254, 153, 47, 255, 212, 51, 229>>
+                      }
+                    }
+                  ],
+                  tokens: [
+                    %Token{
+                      contract_address_hash: %Hash{
+                        byte_count: 20,
+                        bytes:
+                          <<139, 243, 141, 71, 100, 146, 144, 100, 242, 212, 211, 165, 101, 32, 167, 106, 179, 223, 65,
+                            91>>
+                      },
+                      type: "ERC-20",
+                      inserted_at: %{},
+                      updated_at: %{}
+                    }
+                  ],
+                  token_transfers: [
+                    %TokenTransfer{
+                      amount: ^token_transfer_amount,
+                      log_index: 0,
+                      from_address_hash: %Hash{
+                        byte_count: 20,
+                        bytes:
+                          <<232, 221, 197, 199, 162, 210, 240, 215, 169, 121, 132, 89, 192, 16, 79, 223, 94, 152, 122,
+                            202>>
+                      },
+                      to_address_hash: %Hash{
+                        byte_count: 20,
+                        bytes:
+                          <<81, 92, 9, 197, 187, 161, 237, 86, 107, 2, 165, 176, 89, 158, 197, 213, 208, 174, 231, 61>>
+                      },
+                      token_contract_address_hash: %Hash{
+                        byte_count: 20,
+                        bytes:
+                          <<139, 243, 141, 71, 100, 146, 144, 100, 242, 212, 211, 165, 101, 32, 167, 106, 179, 223, 65,
+                            91>>
+                      },
+                      transaction_hash: %Hash{
+                        byte_count: 32,
+                        bytes:
+                          <<83, 189, 136, 72, 114, 222, 62, 72, 134, 146, 136, 27, 174, 236, 38, 46, 123, 149, 35, 77,
+                            57, 101, 36, 140, 57, 254, 153, 47, 255, 212, 51, 229>>
+                      },
+                      inserted_at: %{},
+                      updated_at: %{}
+                    }
+                  ]
+                }} = Chain.import(@import_data)
+      end
     end
   end
 
