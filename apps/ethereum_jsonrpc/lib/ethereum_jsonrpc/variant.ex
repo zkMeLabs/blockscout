@@ -117,19 +117,15 @@ defmodule EthereumJSONRPC.Variant do
 
   # credo:disable-for-next-line
   defp get_default_variant do
-    if Mix.env() == :test do
-      "nethermind"
-    else
-      case Application.get_env(:explorer, :chain_type) do
-        "polygon_zkevm" -> "geth"
-        "zetachain" -> "geth"
-        "shibarium" -> "geth"
-        "stability" -> "geth"
-        "zksync" -> "geth"
-        "rsk" -> "rsk"
-        "filecoin" -> "filecoin"
-        _ -> "nethermind"
-      end
+    case Application.get_env(:explorer, :chain_type) do
+      "polygon_zkevm" -> "geth"
+      "zetachain" -> "geth"
+      "shibarium" -> "geth"
+      "stability" -> "geth"
+      "zksync" -> "geth"
+      "rsk" -> "rsk"
+      "filecoin" -> "filecoin"
+      _ -> "nethermind"
     end
   end
 end
