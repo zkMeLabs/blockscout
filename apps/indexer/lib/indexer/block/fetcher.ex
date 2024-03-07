@@ -16,13 +16,14 @@ defmodule Indexer.Block.Fetcher do
   alias Explorer.Chain.Cache.Blocks, as: BlocksCache
   alias Explorer.Chain.Cache.{Accounts, BlockNumber, Transactions, Uncles}
   alias Indexer.Block.Fetcher.Receipts
+  alias Indexer.Fetcher.CoinBalance.Catchup, as: CoinBalanceCatchup
+  alias Indexer.Fetcher.CoinBalance.Realtime, as: CoinBalanceRealtime
   alias Indexer.Fetcher.PolygonZkevm.BridgeL1Tokens, as: PolygonZkevmBridgeL1Tokens
   alias Indexer.Fetcher.TokenInstance.Realtime, as: TokenInstanceRealtime
 
   alias Indexer.Fetcher.{
     Beacon.Blob,
     BlockReward,
-    CoinBalance,
     ContractCode,
     InternalTransaction,
     ReplacedTransaction,
@@ -42,6 +43,8 @@ defmodule Indexer.Block.Fetcher do
     TokenTransfers,
     TransactionActions
   }
+
+  alias Indexer.Transform.Optimism.Withdrawals, as: OptimismWithdrawals
 
   alias Indexer.Transform.PolygonEdge.{DepositExecutes, Withdrawals}
 
@@ -148,6 +151,8 @@ defmodule Indexer.Block.Fetcher do
          %{token_transfers: token_transfers, tokens: tokens} = TokenTransfers.parse(logs),
          %{transaction_actions: transaction_actions} = TransactionActions.parse(logs),
          %{mint_transfers: mint_transfers} = MintTransfers.parse(logs),
+         optimism_withdrawals =
+           if(callback_module == Indexer.Block.Realtime.Fetcher, do: OptimismWithdrawals.parse(logs), else: []),
          polygon_edge_withdrawals =
            if(callback_module == Indexer.Block.Realtime.Fetcher, do: Withdrawals.parse(logs), else: []),
          polygon_edge_deposit_executes =
@@ -214,6 +219,7 @@ defmodule Indexer.Block.Fetcher do
          },
          chain_type_import_options = %{
            transactions_with_receipts: transactions_with_receipts,
+           optimism_withdrawals: optimism_withdrawals,
            polygon_edge_withdrawals: polygon_edge_withdrawals,
            polygon_edge_deposit_executes: polygon_edge_deposit_executes,
            polygon_zkevm_bridge_operations: polygon_zkevm_bridge_operations,
@@ -247,6 +253,7 @@ defmodule Indexer.Block.Fetcher do
 
   defp import_options(basic_import_options, %{
          transactions_with_receipts: transactions_with_receipts,
+         optimism_withdrawals: optimism_withdrawals,
          polygon_edge_withdrawals: polygon_edge_withdrawals,
          polygon_edge_deposit_executes: polygon_edge_deposit_executes,
          polygon_zkevm_bridge_operations: polygon_zkevm_bridge_operations,
@@ -258,6 +265,10 @@ defmodule Indexer.Block.Fetcher do
         |> Map.put_new(:beacon_blob_transactions, %{
           params: transactions_with_receipts |> Enum.filter(&Map.has_key?(&1, :max_fee_per_blob_gas))
         })
+
+      "optimism" ->
+        basic_import_options
+        |> Map.put_new(:optimism_withdrawals, %{params: optimism_withdrawals})
 
       "polygon_edge" ->
         basic_import_options
@@ -371,10 +382,16 @@ defmodule Indexer.Block.Fetcher do
       block_number = Map.fetch!(address_hash_to_block_number, to_string(address_hash))
       %{address_hash: address_hash, block_number: block_number}
     end)
-    |> CoinBalance.async_fetch_balances()
+    |> CoinBalanceCatchup.async_fetch_balances()
   end
 
   def async_import_coin_balances(_, _), do: :ok
+
+  def async_import_realtime_coin_balances(%{address_coin_balances: balances}) do
+    CoinBalanceRealtime.async_fetch_balances(balances)
+  end
+
+  def async_import_realtime_coin_balances(_), do: :ok
 
   def async_import_created_contract_codes(%{transactions: transactions}) do
     transactions

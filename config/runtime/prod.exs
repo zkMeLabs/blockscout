@@ -67,6 +67,12 @@ config :explorer, Explorer.Repo.BridgedTokens,
   pool_size: 1,
   ssl: ExplorerConfigHelper.ssl_enabled?()
 
+# Configures Optimism database
+config :explorer, Explorer.Repo.Optimism,
+  url: System.get_env("DATABASE_URL"),
+  pool_size: 1,
+  ssl: ExplorerConfigHelper.ssl_enabled?()
+
 # Configures PolygonEdge database
 config :explorer, Explorer.Repo.PolygonEdge,
   url: System.get_env("DATABASE_URL"),
@@ -98,6 +104,20 @@ config :explorer, Explorer.Repo.Shibarium,
 # Configures Suave database
 config :explorer, Explorer.Repo.Suave,
   url: ExplorerConfigHelper.get_suave_db_url(),
+  pool_size: 1,
+  ssl: ExplorerConfigHelper.ssl_enabled?()
+
+# Configures Filecoin database
+config :explorer, Explorer.Repo.Filecoin,
+  url: System.get_env("DATABASE_URL"),
+  pool_size: 1,
+  ssl: ExplorerConfigHelper.ssl_enabled?()
+
+# Configures Stability database
+config :explorer, Explorer.Repo.Stability,
+  url: System.get_env("DATABASE_URL"),
+  # actually this repo is not started, and its pool size remains unused.
+  # separating repos for different CHAIN_TYPE is implemented only for the sake of keeping DB schema update relevant to the current chain type
   pool_size: 1,
   ssl: ExplorerConfigHelper.ssl_enabled?()
 
