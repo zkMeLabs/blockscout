@@ -80,6 +80,7 @@ defmodule Explorer.Chain do
   }
 
   alias Explorer.Chain.Cache.Block, as: BlockCache
+  alias Explorer.Chain.Cache.Helper, as: CacheHelper
   alias Explorer.Chain.Cache.PendingBlockOperation, as: PendingBlockOperationCache
   alias Explorer.Chain.Fetcher.{CheckBytecodeMatchingOnDemand, LookUpSmartContractSourcesOnDemand}
   alias Explorer.Chain.Import.Runner
@@ -305,11 +306,19 @@ defmodule Explorer.Chain do
     filters = Keyword.get(options, :token_type)
     necessity_by_association = Keyword.get(options, :necessity_by_association)
 
-    direction
-    |> TokenTransfer.token_transfers_by_address_hash(address_hash, filters)
-    |> join_associations(necessity_by_association)
-    |> TokenTransfer.handle_paging_options(paging_options)
-    |> select_repo(options).all()
+    if direction == :to || direction == :from do
+      direction
+      |> TokenTransfer.token_transfers_by_address_hash(address_hash, filters, paging_options)
+      |> join_associations(necessity_by_association)
+      |> TokenTransfer.handle_paging_options(paging_options)
+      |> select_repo(options).all()
+    else
+      direction
+      |> TokenTransfer.token_transfers_by_address_hash(address_hash, filters, paging_options)
+      |> join_associations(necessity_by_association)
+      |> limit(^paging_options.page_size)
+      |> select_repo(options).all()
+    end
   end
 
   @spec address_hash_to_token_transfers_by_token_address_hash(
@@ -544,12 +553,14 @@ defmodule Explorer.Chain do
           ]
   def block_to_transactions(block_hash, options \\ [], old_ui? \\ true) when is_list(options) do
     necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
+    type_filter = Keyword.get(options, :type)
 
     options
     |> Keyword.get(:paging_options, @default_paging_options)
     |> fetch_transactions_in_ascending_order_by_index()
     |> join(:inner, [transaction], block in assoc(transaction, :block))
     |> where([_, block], block.hash == ^block_hash)
+    |> apply_filter_by_tx_type_to_transactions(type_filter)
     |> join_associations(necessity_by_association)
     |> Transaction.put_has_token_transfers_to_tx(old_ui?)
     |> (&if(old_ui?, do: preload(&1, [{:token_transfers, [:token, :from_address, :to_address]}]), else: &1)).()
@@ -1658,6 +1669,18 @@ defmodule Explorer.Chain do
     |> Enum.into(%{})
   end
 
+  def get_table_rows_total_count(module, options) do
+    table_name = module.__schema__(:source)
+
+    count = CacheHelper.estimated_count_from(table_name, options)
+
+    if is_nil(count) do
+      select_repo(options).aggregate(module, :count, timeout: :infinity)
+    else
+      count
+    end
+  end
+
   @doc """
   Calls `reducer` on a stream of `t:Explorer.Chain.Block.t/0` without `t:Explorer.Chain.Block.Reward.t/0`.
   """
@@ -1829,7 +1852,8 @@ defmodule Explorer.Chain do
       from(
         po in PendingBlockOperation,
         where: not is_nil(po.block_number),
-        select: po.block_number
+        select: po.block_number,
+        order_by: [desc: po.block_number]
       )
 
     query
@@ -3213,8 +3237,8 @@ defmodule Explorer.Chain do
 
   def limit_showing_transactions, do: @limit_showing_transactions
 
-  defp join_association(query, [{association, nested_preload}], necessity)
-       when is_atom(association) and is_atom(nested_preload) do
+  def join_association(query, [{association, nested_preload}], necessity)
+      when is_atom(association) and is_atom(nested_preload) do
     case necessity do
       :optional ->
         preload(query, [{^association, ^nested_preload}])
@@ -3230,7 +3254,7 @@ defmodule Explorer.Chain do
     end
   end
 
-  defp join_association(query, association, necessity) do
+  def join_association(query, association, necessity) do
     case necessity do
       :optional ->
         preload(query, ^association)
