@@ -181,9 +181,6 @@ defmodule Indexer.Transform.TokenTransfers do
     from_address_hash = truncate_address_hash(log.second_topic)
     to_address_hash = truncate_address_hash(log.third_topic)
 
-    from_address_hash = truncate_address_hash(log.second_topic)
-    to_address_hash = truncate_address_hash(log.third_topic)
-
     token_transfer = %{
       amount: Decimal.new(amount || 0),
       block_number: log.block_number,
@@ -242,9 +239,6 @@ defmodule Indexer.Transform.TokenTransfers do
   defp parse_params(%{second_topic: second_topic, third_topic: third_topic, fourth_topic: fourth_topic} = log)
        when not is_nil(second_topic) and not is_nil(third_topic) and not is_nil(fourth_topic) do
     [token_id] = Helper.decode_data(fourth_topic, [{:uint, 256}])
-
-    from_address_hash = truncate_address_hash(log.second_topic)
-    to_address_hash = truncate_address_hash(log.third_topic)
 
     from_address_hash = truncate_address_hash(log.second_topic)
     to_address_hash = truncate_address_hash(log.third_topic)
@@ -341,9 +335,6 @@ defmodule Indexer.Transform.TokenTransfers do
 
   def parse_erc1155_params(%{third_topic: third_topic, fourth_topic: fourth_topic, data: data} = log) do
     [token_id, value] = Helper.decode_data(data, [{:uint, 256}, {:uint, 256}])
-
-    from_address_hash = truncate_address_hash(third_topic)
-    to_address_hash = truncate_address_hash(fourth_topic)
 
     from_address_hash = truncate_address_hash(third_topic)
     to_address_hash = truncate_address_hash(fourth_topic)

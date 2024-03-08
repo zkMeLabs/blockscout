@@ -322,14 +322,18 @@ defmodule Explorer.Chain.TokenTransfer do
     else
       to_address_hash_query =
         only_consensus_transfers_query()
+        |> join(:inner, [tt], token in assoc(tt, :token), as: :token)
         |> filter_by_direction(:to, address_hash)
+        |> filter_by_type(token_types)
         |> order_by([tt], desc: tt.block_number, desc: tt.log_index)
         |> TokenTransfer.handle_paging_options(paging_options)
         |> Chain.wrapped_union_subquery()
 
       from_address_hash_query =
         only_consensus_transfers_query()
+        |> join(:inner, [tt], token in assoc(tt, :token), as: :token)
         |> filter_by_direction(:from, address_hash)
+        |> filter_by_type(token_types)
         |> order_by([tt], desc: tt.block_number, desc: tt.log_index)
         |> TokenTransfer.handle_paging_options(paging_options)
         |> Chain.wrapped_union_subquery()
@@ -337,10 +341,7 @@ defmodule Explorer.Chain.TokenTransfer do
       to_address_hash_query
       |> union(^from_address_hash_query)
       |> Chain.wrapped_union_subquery()
-      |> join(:inner, [tt], token in assoc(tt, :token), as: :token)
-      |> filter_by_type(token_types)
       |> order_by([tt], desc: tt.block_number, desc: tt.log_index)
-      |> select_merge([tt, token], %{tt | token: token})
     end
   end
 
