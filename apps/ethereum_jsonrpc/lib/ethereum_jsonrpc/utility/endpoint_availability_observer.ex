@@ -98,7 +98,17 @@ defmodule EthereumJSONRPC.Utility.EndpointAvailabilityObserver do
           url_type
         )
 
-        Logger.warning("URL #{inspect(url)} is unavailable, switching to fallback url")
+        fallback_url_set? =
+          case url_type do
+            :http -> not is_nil(json_rpc_named_arguments[:transport_options][:fallback_url])
+            :trace -> not is_nil(json_rpc_named_arguments[:transport_options][:fallback_trace_url])
+            :eth_call -> not is_nil(json_rpc_named_arguments[:transport_options][:fallback_eth_call_url])
+          end
+
+        fallback_url_message =
+          if fallback_url_set?, do: "switching to fallback #{url_type} url", else: "and no fallback is set"
+
+        Logger.warning("URL #{inspect(url)} is unavailable, #{fallback_url_message}")
 
         %{
           state
