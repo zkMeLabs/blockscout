@@ -16,6 +16,7 @@
 
 ### Fixes
 
+- [#9601](https://github.com/blockscout/blockscout/pull/9601) - Fix token instance transform for some unconventional tokens
 - [#9597](https://github.com/blockscout/blockscout/pull/9597) - Update token transfers block_consensus by block_number
 - [#9585](https://github.com/blockscout/blockscout/pull/9585) - Fix Geth block internal transactions fetching
 - [#9572](https://github.com/blockscout/blockscout/pull/9572) - Fix Shibarium L1 fetcher
