@@ -64,12 +64,6 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
 
     hashes = Enum.map(changes_list, & &1.hash)
 
-    items_for_pending_ops =
-      changes_list
-      |> filter_by_height_range(&RangesHelper.traceable_block_number?(&1.number))
-      |> Enum.filter(& &1.consensus)
-      |> Enum.map(&{&1.number, &1.hash})
-
     consensus_block_numbers = consensus_block_numbers(changes_list)
 
     # Enforce ShareLocks tables order (see docs: sharelocks.md)
@@ -100,10 +94,10 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
         :blocks
       )
     end)
-    |> Multi.run(:new_pending_operations, fn repo, %{lose_consensus: nonconsensus_items} ->
+    |> Multi.run(:new_pending_operations, fn repo, %{blocks: blocks, lose_consensus: nonconsensus_items} ->
       Instrumenter.block_import_stage_runner(
         fn ->
-          new_pending_operations(repo, nonconsensus_items, items_for_pending_ops, insert_options)
+          new_pending_operations(repo, nonconsensus_items, blocks, insert_options)
         end,
         :address_referencing,
         :blocks,
@@ -441,12 +435,15 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
     lose_consensus(ExplorerRepo, [], block_numbers, [], opts)
   end
 
-  defp new_pending_operations(repo, nonconsensus_items, items, %{
+  defp new_pending_operations(repo, nonconsensus_items, inserted_blocks, %{
          timeout: timeout,
          timestamps: timestamps
        }) do
     sorted_pending_ops =
-      items
+      inserted_blocks
+      |> filter_by_height_range(&RangesHelper.traceable_block_number?(&1.number))
+      |> Enum.filter(& &1.consensus)
+      |> Enum.map(&{&1.number, &1.hash})
       |> MapSet.new()
       |> MapSet.difference(MapSet.new(nonconsensus_items))
       |> Enum.sort()
