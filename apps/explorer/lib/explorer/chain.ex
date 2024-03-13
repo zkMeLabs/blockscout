@@ -3056,7 +3056,9 @@ defmodule Explorer.Chain do
           join: t in assoc(itx, :transaction),
           where: itx.created_contract_address_hash == ^address_hash,
           where: t.status == ^1,
-          select: %{init: itx.init, created_contract_code: itx.created_contract_code}
+          select: %{init: itx.init, created_contract_code: itx.created_contract_code},
+          order_by: [desc: itx.block_number],
+          limit: ^1
         )
 
       res = creation_int_tx_query |> Repo.one()
@@ -3549,27 +3551,6 @@ defmodule Explorer.Chain do
     |> add_fetcher_limit(limited?)
     |> order_by(asc: :updated_at)
     |> Repo.stream_reduce(initial, reducer)
-  end
-
-  def decode_contract_address_hash_response(resp) do
-    case resp do
-      "0x000000000000000000000000" <> address ->
-        "0x" <> address
-
-      _ ->
-        nil
-    end
-  end
-
-  def decode_contract_integer_response(resp) do
-    case resp do
-      "0x" <> integer_encoded ->
-        {integer_value, _} = Integer.parse(integer_encoded, 16)
-        integer_value
-
-      _ ->
-        nil
-    end
   end
 
   @doc """
