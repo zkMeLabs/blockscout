@@ -4,8 +4,11 @@
 
 ### Features
 
+- [#9631](https://github.com/blockscout/blockscout/pull/9631) - Initial support of zksync chain type
 - [#9511](https://github.com/blockscout/blockscout/pull/9511) - Separate errors by type in EndpointAvailabilityObserver
 - [#9490](https://github.com/blockscout/blockscout/pull/9490) - Add blob transaction counter and filter in block view
+- [#9486](https://github.com/blockscout/blockscout/pull/9486) - Massive blocks fetcher
+- [#9473](https://github.com/blockscout/blockscout/pull/9473) - Add user_op interpretation
 - [#9461](https://github.com/blockscout/blockscout/pull/9461) - Fetch blocks without internal transactions backwards
 - [#9460](https://github.com/blockscout/blockscout/pull/9460) - Optimism chain type
 - [#9409](https://github.com/blockscout/blockscout/pull/9409) - ETH JSON RPC extension
@@ -21,6 +24,7 @@
 - [#9597](https://github.com/blockscout/blockscout/pull/9597) - Update token transfers block_consensus by block_number
 - [#9596](https://github.com/blockscout/blockscout/pull/9596) - Fix logging
 - [#9585](https://github.com/blockscout/blockscout/pull/9585) - Fix Geth block internal transactions fetching
+- [#9576](https://github.com/blockscout/blockscout/pull/9576) - Rewrite query for token transfers on address to eliminate "or"
 - [#9572](https://github.com/blockscout/blockscout/pull/9572) - Fix Shibarium L1 fetcher
 - [#9563](https://github.com/blockscout/blockscout/pull/9563) - Fix timestamp handler for unfinalized zkEVM batches
 - [#9560](https://github.com/blockscout/blockscout/pull/9560) - Fix fetch pending transaction for hyperledger besu client
@@ -45,6 +49,7 @@
 
 ### Chore
 
+- [#9622](https://github.com/blockscout/blockscout/pull/9622) - Add alternative `hex.pm` mirrors
 - [#9571](https://github.com/blockscout/blockscout/pull/9571) - Support Optimism Ecotone upgrade by Indexer.Fetcher.Optimism.TxnBatch module
 - [#9562](https://github.com/blockscout/blockscout/pull/9562) - Add cancun evm version
 - [#9506](https://github.com/blockscout/blockscout/pull/9506) - API v1 bridgedtokenlist endpoint
