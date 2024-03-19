@@ -93,8 +93,16 @@ defmodule EthereumJSONRPC.Geth do
     blocks_responses
     |> EthereumJSONRPC.sanitize_responses(id_to_params)
     |> Enum.reduce([], fn
-      %{result: _result}, acc -> acc
-      %{error: error}, acc -> [error | acc]
+      %{result: result}, acc ->
+        result
+        |> Enum.reduce([], fn
+          %{"result" => _calls_result}, acc -> acc
+          %{"error" => error}, acc -> [error | acc]
+        end)
+        |> Kernel.++(acc)
+
+      %{error: error}, acc ->
+        [error | acc]
     end)
     |> case do
       [] -> :ok

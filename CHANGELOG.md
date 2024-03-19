@@ -6,6 +6,8 @@
 
 ### Fixes
 
+- [#9672](https://github.com/blockscout/blockscout/pull/9672) - Fix Geth block tracing errors handling
+
 ### Chore
 
 <details>
