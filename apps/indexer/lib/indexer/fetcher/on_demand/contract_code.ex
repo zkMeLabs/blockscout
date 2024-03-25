@@ -14,6 +14,7 @@ defmodule Indexer.Fetcher.OnDemand.ContractCode do
   alias Explorer.Chain.Events.Publisher
   alias Explorer.Counters.Helper
   alias Explorer.Utility.AddressContractCodeFetchAttempt
+  alias Timex.Duration
 
   @max_delay :timer.hours(168)
 
@@ -29,7 +30,8 @@ defmodule Indexer.Fetcher.OnDemand.ContractCode do
          updated_at_ms = DateTime.to_unix(updated_at, :millisecond),
          {:retry, true} <-
            {:retry,
-            Helper.current_time() - updated_at_ms > min(:math.pow(update_threshold(), retries_number), @max_delay)} do
+            Helper.current_time() - updated_at_ms >
+              threshold(retries_number)} do
       fetch_and_broadcast_bytecode(address.hash, state)
     else
       {:empty_nonce, false} ->
@@ -83,7 +85,17 @@ defmodule Indexer.Fetcher.OnDemand.ContractCode do
     {:noreply, state}
   end
 
-  defp update_threshold do
-    Application.get_env(:indexer, __MODULE__)[:threshold]
+  defp update_threshold_in_sec do
+    Application.get_env(:indexer, __MODULE__)[:threshold] |> Duration.from_milliseconds() |> Duration.to_seconds()
+  end
+
+  defp threshold(retries_number) do
+    delay_in_sec =
+      1
+      |> max(update_threshold_in_sec())
+      |> :math.pow(retries_number)
+      |> trunc()
+
+    min(:timer.seconds(delay_in_sec), @max_delay)
   end
 end
