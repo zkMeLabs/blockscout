@@ -90,8 +90,8 @@ defmodule Indexer.Fetcher.OnDemand.ContractCode do
   end
 
   defp threshold(retries_number) do
-    delay_in_sec = :math.pow(update_threshold_in_sec(), retries_number)
+    delay_in_sec = :math.pow(max(update_threshold_in_sec(), 1), retries_number)
 
-    min(:timer.seconds(max(delay_in_sec, 1)), @max_delay)
+    min(:timer.seconds(delay_in_sec), @max_delay)
   end
 end
