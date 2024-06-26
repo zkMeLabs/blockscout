@@ -43,7 +43,7 @@ services:
     environment:
       ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545/
       ETHEREUM_JSONRPC_TRACE_URL: http://host.docker.internal:8545/
-      ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:7545/
+      ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8546/
       NEXT_PUBLIC_API_PROTOCOL: https
       CHAIN_ID: "1000000"
       FIRST_BLOCK: 1
