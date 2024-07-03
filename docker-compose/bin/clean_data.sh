@@ -1,2 +1,6 @@
 #!/bin/bash
-rm -fr services/blockscout-db-data services/redis-data services/-db-data
+current_dir=$(dirname "$(readlink -f "$0")")
+
+parent_dir=$(dirname "$current_dir")
+
+rm -fr "$parent_dir/services/blockscout-db-data" "$parent_dir/services/redis-data" "$parent_dir/services/stats-db-data" "$parent_dir/services/logs"
