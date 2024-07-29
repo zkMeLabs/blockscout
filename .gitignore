@@ -61,9 +61,3 @@ dump.rdb
 
 **.dec**
 
-*.env
-*.env.example
-*.env.local
-*.env.staging
-
-!/docker-compose/envs/dev-mechain-common-frontend.env
