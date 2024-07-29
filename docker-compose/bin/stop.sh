@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo docker-compose -f dev-mechain.yml down
+sudo docker compose -f docker-compose.mechain.devnet.yml down

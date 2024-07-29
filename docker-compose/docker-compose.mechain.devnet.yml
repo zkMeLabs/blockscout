@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   redis-db:
     extends:
@@ -41,11 +39,11 @@ services:
     links:
       - db:database
     environment:
-      ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545/
-      ETHEREUM_JSONRPC_TRACE_URL: http://host.docker.internal:8545/
-      ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8546/
+      ETHEREUM_JSONRPC_HTTP_URL: https://devnet-rpc.mechain.tech:8545/
+      ETHEREUM_JSONRPC_TRACE_URL: https://devnet-rpc.mechain.tech:8545/
+      ETHEREUM_JSONRPC_WS_URL: ws://devnet-rpc.mechain.tech:8546/
       NEXT_PUBLIC_API_PROTOCOL: https
-      CHAIN_ID: "1000000"
+      CHAIN_ID: "5151"
       FIRST_BLOCK: 1
 
   visualizer:
@@ -62,7 +60,7 @@ services:
     depends_on:
       - backend
     extends:
-      file: ./services/dev-mechain-frontend.yml
+      file: ./services/frontend.mechain.devnet.yml
       service: frontend
 
   stats-db-init:
@@ -92,5 +90,5 @@ services:
       - frontend
       - stats
     extends:
-      file: ./services/dev-mechain-nginx.yml
+      file: ./services/nginx.mechain.devnet.yml
       service: proxy
