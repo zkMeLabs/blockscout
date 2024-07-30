@@ -39,9 +39,9 @@ services:
     links:
       - db:database
     environment:
-      ETHEREUM_JSONRPC_HTTP_URL: http://154.48.244.41:8545
-      ETHEREUM_JSONRPC_TRACE_URL: http://154.48.244.41:8545
-      ETHEREUM_JSONRPC_WS_URL: ws://154.48.244.41:8546
+      ETHEREUM_JSONRPC_HTTP_URL: https://devnet-rpc.mechain.tech
+      ETHEREUM_JSONRPC_TRACE_URL: https://devnet-rpc.mechain.tech
+      ETHEREUM_JSONRPC_WS_URL: ws://devnet-rpc.mechain.tech/websocket
       NEXT_PUBLIC_API_PROTOCOL: https
       CHAIN_ID: "5151"
       FIRST_BLOCK: 1
