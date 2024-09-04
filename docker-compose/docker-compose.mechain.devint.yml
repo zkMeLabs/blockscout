@@ -39,9 +39,9 @@ services:
     links:
       - db:database
     environment:
-      ETHEREUM_JSONRPC_HTTP_URL: https://devnet-rpc.mechain.tech
-      ETHEREUM_JSONRPC_TRACE_URL: https://devnet-rpc.mechain.tech
-      ETHEREUM_JSONRPC_WS_URL: ws://devnet-rpc.mechain.tech/websocket
+      ETHEREUM_JSONRPC_HTTP_URL: https://devint-rpc.mechain.tech
+      ETHEREUM_JSONRPC_TRACE_URL: https://devint-rpc.mechain.tech
+      ETHEREUM_JSONRPC_WS_URL: ws://devint-rpc.mechain.tech/websocket
       NEXT_PUBLIC_API_PROTOCOL: https
       CHAIN_ID: "5151"
       FIRST_BLOCK: 1
@@ -60,7 +60,7 @@ services:
     depends_on:
       - backend
     extends:
-      file: ./services/frontend.mechain.devnet.yml
+      file: ./services/frontend.mechain.devint.yml
       service: frontend
 
   stats-db-init:
@@ -90,5 +90,5 @@ services:
       - frontend
       - stats
     extends:
-      file: ./services/nginx.mechain.devnet.yml
+      file: ./services/nginx.mechain.devint.yml
       service: proxy
