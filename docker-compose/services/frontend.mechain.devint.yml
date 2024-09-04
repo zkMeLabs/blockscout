@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   frontend:
-    container_name: "frontend"
+    container_name: "blockscout-frontend"
     image: hub.bitkinetic.com/mechain/frontend:${FRONTEND_DOCKER_TAG:-latest}
     pull_policy: always
     platform: linux/amd64
