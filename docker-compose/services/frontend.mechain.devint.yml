@@ -3,7 +3,7 @@ version: "3.9"
 services:
   frontend:
     container_name: "blockscout-frontend"
-    image: hub.bitkinetic.com/mechain/frontend:${FRONTEND_DOCKER_TAG:-latest}
+    image: kevin2025/blockscout-frontend:${FRONTEND_DOCKER_TAG:-latest}
     pull_policy: always
     platform: linux/amd64
     restart: always
@@ -13,4 +13,4 @@ services:
       - ../envs/common-frontend.mechain.devint.env
       - /data/frontend/.env.secrets
     volumes:
-      - /data/frontend/configs/envs:/app/configs/envs:ro
+      - /data/blockscout-frontend/envs:/app/configs/envs:ro
